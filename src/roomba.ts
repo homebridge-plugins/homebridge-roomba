@@ -52,7 +52,7 @@ export async function getRoombas(email: string, password: string, log: Logger, c
 
     for (const robot of robots) {
         if (!config.disableDiscovery) {
-            log.info('roomba name:', robot.name, 'blid:', robot.blid, 'password:', robot.password)
+            log.debug('roomba name:', robot.name, 'blid:', robot.blid, 'password:', robot.password)
             if (!robot.name || !robot.blid || !robot.password) {
                 log.error('Skipping configuration for roomba:', robot.name, 'due to missing name, blid or password')
                 continue
