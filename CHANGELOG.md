@@ -9,7 +9,7 @@
 
 **Full Changelog**: https://github.com/homebridge-plugins/homebridge-roomba/compare/v2.0.0...v2.1.0
 
-## [2.0.0](https://github.com/homebridge-plugins/homebridge-roomba/releases/tag/v2.0.0) (2025-01-25)
+## [2.0.0](https://github.com/homebridge-plugins/homebridge-roomba/releases/tag/v2.0.0) (2025-03-04)
 
 ### What's Changes
 #### Major Changes
