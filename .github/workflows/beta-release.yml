@@ -10,6 +10,7 @@ jobs:
     uses: homebridge/.github/.github/workflows/nodejs-build-and-test.yml@latest
     with:
       enable_coverage: false
+      node_versions: '["20","22"]'
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}
   lint:
