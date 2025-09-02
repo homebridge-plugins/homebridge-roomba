@@ -232,6 +232,33 @@
                             "title": "Idle Poll Interval (minutes)",
                             "description": "How often to poll Roomba's status when it is idle. Defaults to 15 minutes.",
                             "required": false
+                        },
+                        "accessoryCategory": {
+                            "type": "string",
+                            "title": "HomeKit Accessory Category",
+                            "description": "Note: iOS 18 vacuum support is Matter-only, not HomeKit HAP. This setting only affects the accessory icon.",
+                            "default": "other",
+                            "required": false,
+                            "oneOf": [
+                                {
+                                    "title": "Other (Generic)",
+                                    "enum": [
+                                        "other"
+                                    ]
+                                },
+                                {
+                                    "title": "Switch",
+                                    "enum": [
+                                        "switch"
+                                    ]
+                                },
+                                {
+                                    "title": "Sensor",
+                                    "enum": [
+                                        "sensor"
+                                    ]
+                                }
+                            ]
                         }
                     }
                 }

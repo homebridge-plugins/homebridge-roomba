@@ -99,7 +99,16 @@ export default class RoombaPlatform implements DynamicPlatformPlugin {
       } else {
         this.log.debug('accessory device: %s', JSON.stringify(device))
         this.log.info('Adding new accessory:', device.name)
-        const accessory = new this.api.platformAccessory(device.name, uuid)
+        
+        // Map user-friendly category names to HAP Categories
+        const categoryMap = {
+          'other': this.api.hap.Categories.OTHER,
+          'switch': this.api.hap.Categories.SWITCH, 
+          'sensor': this.api.hap.Categories.SENSOR,
+        } as const
+        
+        const category = categoryMap[device.accessoryCategory || 'other']
+        const accessory = new this.api.platformAccessory(device.name, uuid, category)
         accessory.context.device = device
         const { serialNumber, deviceInfo } = this.serialNum(device)
         accessory.context.serialNumber = serialNumber

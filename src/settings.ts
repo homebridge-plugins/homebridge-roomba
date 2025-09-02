@@ -41,4 +41,11 @@ export interface DeviceConfig extends Robot {
     dockingContactSensor?: boolean
     homeSwitch?: boolean
     tankContactSensor?: boolean
+    
+    /**
+     * HomeKit accessory category. 
+     * Note: iOS 18 vacuum support is Matter-only, not HomeKit HAP.
+     * Available categories: 'other', 'switch', 'sensor'
+     */
+    accessoryCategory?: 'other' | 'switch' | 'sensor'
 }
