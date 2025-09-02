@@ -118,9 +118,10 @@ Here is example JSON for configuring a Roomba accessory:
 
 This plugin supports **External Accessories** mode, which publishes each Roomba as a separate HomeKit device instead of grouping them under a bridge. This feature provides:
 
-- **Matter Compatibility**: Prepares for future Matter support in Homebridge
+- **Automatic Matter Support**: Uses `publishMatterAccessories` API when available (Homebridge 2.0.0-alpha.28+)
 - **Individual Device Management**: Each Roomba appears as a separate tile in the Home app  
 - **Enhanced Reliability**: Independent device management and troubleshooting
+- **Future-Proof**: Ready for Matter protocol expansion
 
 To enable external accessories, add `"externalAccessories": true` to your platform configuration:
 

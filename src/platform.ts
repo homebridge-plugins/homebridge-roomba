@@ -82,10 +82,10 @@ export default class RoombaPlatform implements DynamicPlatformPlugin {
     const devices: Robot[] & DeviceConfig[] = await this.discoveryMethod()
     
     if (this.config.externalAccessories) {
-      // External accessories mode - publish each as separate device
+      // External accessories mode - publish each as separate device with Matter support
       for (const device of devices) {
         const uuid = this.api.hap.uuid.generate(device.blid)
-        this.log.info('Publishing external accessory:', device.name)
+        this.log.info('Publishing Matter-compatible external accessory:', device.name)
         
         // Map user-friendly category names to HAP Categories
         const categoryMap = {
@@ -107,7 +107,13 @@ export default class RoombaPlatform implements DynamicPlatformPlugin {
           ...device,
         }, this.config, this.api)
         
-        this.api.publishExternalAccessories(PLUGIN_NAME, [accessory])
+        // Use publishMatterAccessories for Homebridge alpha.28+ with Matter support
+        // Falls back to publishExternalAccessories for older versions
+        if (typeof (this.api as any).publishMatterAccessories === 'function') {
+          (this.api as any).publishMatterAccessories(PLUGIN_NAME, [accessory])
+        } else {
+          this.api.publishExternalAccessories(PLUGIN_NAME, [accessory])
+        }
       }
     } else {
       // Platform accessories mode - use existing cached logic

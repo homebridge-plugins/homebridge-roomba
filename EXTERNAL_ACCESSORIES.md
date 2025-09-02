@@ -1,6 +1,6 @@
 # External Accessories and Matter Support
 
-This plugin now supports publishing each Roomba as an external accessory instead of platform accessories under a bridge. This feature is designed to prepare for and enhance compatibility with Matter support in Homebridge.
+This plugin now supports publishing each Roomba as an external accessory with automatic Matter compatibility detection. When using Homebridge 2.0.0-alpha.28 or later, the plugin will automatically use the new `publishMatterAccessories` API for enhanced Matter support.
 
 ## What are External Accessories?
 
@@ -11,6 +11,7 @@ This plugin now supports publishing each Roomba as an external accessory instead
 
 **External Accessories** (new feature):
 - Each Roomba appears as a separate, independent device in HomeKit
+- Automatic Matter protocol support when available (Homebridge alpha.28+)
 - Better compatibility with Matter bridging protocols
 - Future-proof for advanced HomeKit/Matter features
 
@@ -28,12 +29,22 @@ Add the `externalAccessories` option to your platform configuration:
 }
 ```
 
+## Matter Support Detection
+
+The plugin automatically detects and uses the best available API:
+
+- **Homebridge 2.0.0-alpha.28+**: Uses `publishMatterAccessories` for native Matter protocol support
+- **Older versions**: Falls back to `publishExternalAccessories` for standard external accessory behavior
+
+This ensures compatibility across all supported Homebridge versions while providing Matter support when available.
+
 ## Benefits of External Accessories
 
 ### Matter Compatibility
-- Prepares your setup for Matter support in Homebridge alpha/beta versions
+- **Automatic Matter support** when using Homebridge alpha versions with Matter capabilities
 - Each device can be individually exposed to Matter networks
 - Better integration with Thread/Matter ecosystems
+- Prepares for future Matter protocol enhancements
 
 ### Individual Device Management
 - Each Roomba appears as a separate tile in the Home app
