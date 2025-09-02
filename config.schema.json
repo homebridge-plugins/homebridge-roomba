@@ -39,6 +39,13 @@
                 "description": "Disable automatic discovery of Roomba devices. If you have multiple Roomba devices, you can disable discovery and manually configure each device.",
                 "required": false
             },
+            "externalAccessories": {
+                "type": "boolean",
+                "title": "External Accessories",
+                "description": "Publish each Roomba as an external accessory instead of platform accessories. External accessories appear as separate devices in HomeKit and support Matter bridging.",
+                "required": false,
+                "default": false
+            },
             "devices": {
                 "type": "array",
                 "items": {

@@ -114,6 +114,30 @@ Here is example JSON for configuring a Roomba accessory:
 | `user_pmapv_id`        | The version id of your map in the iRobot app (contains Date and Time last modified) |               |
 | `stopBehaviour`        | Roomba can go home or pause when stopped                                            | `home`        |
 
+### External Accessories & Matter Support
+
+This plugin supports **External Accessories** mode, which publishes each Roomba as a separate HomeKit device instead of grouping them under a bridge. This feature provides:
+
+- **Matter Compatibility**: Prepares for future Matter support in Homebridge
+- **Individual Device Management**: Each Roomba appears as a separate tile in the Home app  
+- **Enhanced Reliability**: Independent device management and troubleshooting
+
+To enable external accessories, add `"externalAccessories": true` to your platform configuration:
+
+```json
+{
+  "platform": "Roomba",
+  "name": "Roomba",
+  "email": "your-email@example.com",
+  "password": "your-password", 
+  "externalAccessories": true
+}
+```
+
+**Important**: Switching to external accessories requires re-pairing all devices and recreating scenes/automations.
+
+📖 For detailed information, see [External Accessories Documentation](./EXTERNAL_ACCESSORIES.md)
+
 ### Cleaning Mission configuration
 
 This plugin can instruct the Roomba to clean everywhere or go on a specific cleaning job when started. Follow these steps to get the mission configuration values from the iRobot app.
