@@ -4,68 +4,6 @@ Homebridge plugin for iRobot Roomba vacuum cleaners. This is a TypeScript-based 
 
 Always reference these instructions first and fallback to search or bash commands only when you encounter unexpected information that does not match the info here.
 
-## PR Workflow and Beta Branch Requirements
-
-### Branch Targeting Strategy
-**ALL PULL REQUESTS MUST TARGET A BETA BRANCH FIRST** - never target the `latest` branch directly.
-
-1. **Check for existing beta branch**: Look for branches starting with `beta-` (e.g., `beta-2.1.1`, `beta-2.2.0`)
-2. **If no beta branch exists**: Create one based on the next possible version according to semantic versioning
-3. **Target the beta branch**: Always target your PR to the appropriate beta branch
-
-### Version Label Requirements
-**CRITICAL**: Before assigning any issue to Copilot, one of these labels MUST be set to determine the version increment:
-
-- **`patch`** - For bug fixes (2.1.0 → 2.1.1)
-- **`minor`** - For new features (2.1.0 → 2.2.0) 
-- **`major`** - For breaking changes (2.1.0 → 3.0.0)
-
-**No work should begin without the appropriate version label being assigned first.**
-
-### Beta Branch Creation Process
-If no appropriate beta branch exists:
-
-1. **For patch changes**: Create `beta-X.Y.Z+1` (e.g., if current is 2.1.0, create `beta-2.1.1`)
-2. **For minor changes**: Create `beta-X.Y+1.0` (e.g., if current is 2.1.0, create `beta-2.2.0`)  
-3. **For major changes**: Create `beta-X+1.0.0` (e.g., if current is 2.1.0, create `beta-3.0.0`)
-
-```bash
-# Example: Creating a beta branch for a minor feature
-git checkout latest
-git pull origin latest
-git checkout -b beta-2.2.0
-git push origin beta-2.2.0
-```
-
-**Current State**: As of this writing, the current release is 2.1.0 and there is an existing `beta-2.1.1` branch for patch releases.
-
-### Examples of Branch Targeting
-- **Bug fix (patch label)** → Target `beta-2.1.1` (if exists) or create it
-- **New feature (minor label)** → Target `beta-2.2.0` (create if needed)
-- **Breaking change (major label)** → Target `beta-3.0.0` (create if needed)
-
-### Workflow Summary
-1. ✅ Check issue has `patch`, `minor`, or `major` label assigned
-2. ✅ Identify or create appropriate beta branch
-3. ✅ Target PR to beta branch (not `latest`)
-4. ✅ Follow normal development workflow below
-5. ✅ Use changesets to document your changes (see Publishing Workflow section)
-
-### Integration with Changesets
-This project uses [Changesets](https://github.com/changesets/changesets) for version management. When making changes:
-
-1. **Create a changeset** describing your change:
-   ```bash
-   npm exec changeset
-   ```
-2. **Select the change type** that matches your issue label:
-   - Patch → patch (bug fixes)
-   - Minor → minor (new features) 
-   - Major → major (breaking changes)
-3. **Commit the changeset file** as part of your PR
-
-The changeset type should align with the issue label that was set before assignment.
-
 ## Working Effectively
 
 ### Bootstrap and Build Process
@@ -96,16 +34,7 @@ Key build commands with validated timings:
 - `npm run docs:theme` - Generate docs with default-modern theme
 
 ### Publishing Workflow
-This project uses Changesets for version management and release automation:
-
-- `npm exec changeset` - Create a changeset describing your changes (do this for each PR)
-- `npm exec changeset version` - Update package.json and CHANGELOG.md (maintainer only)
-- `npm exec changeset publish` - Publish to npm (maintainer only)
 - `npm run prepublishOnly` - Complete CI workflow: lint + build + docs. Takes ~15 seconds. NEVER CANCEL. Set timeout to 60+ seconds.
-
-**For Contributors**: Always create a changeset when making changes. The type (patch/minor/major) should match the issue label.
-
-**Beta Release Process**: Beta versions are automatically published from beta branches. When a beta branch is ready, it gets merged to `latest` for stable release.
 
 ## Validation
 
