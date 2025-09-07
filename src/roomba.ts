@@ -8,6 +8,7 @@ import type { RoombaPlatformConfig } from './settings.js'
 import { Buffer } from 'node:buffer'
 import * as dgram from 'node:dgram'
 import * as https from 'node:https'
+import * as os from 'node:os'
 
 export async function getRoombas(email: string, password: string, log: Logger, config: RoombaPlatformConfig): Promise<Robot[]> {
     let robots: Robot[] = []
@@ -61,11 +62,11 @@ export async function getRoombas(email: string, password: string, log: Logger, c
             log.info('Configuring roomba:', robot.name)
 
             try {
-                const robotIP = await getIP(robot.blid)
-                robot.ip = robotIP.ip
-                robot.model = getModel(robotIP.sku)
+                const robotData = await getData(robot.blid, log)
+                robot.ip = robotData.ip
+                robot.model = getModel(robotData.sku)
                 robot.multiRoom = getMultiRoom(robot.model)
-                robot.info = robotIP
+                robot.info = robotData
                 goodRoombas.push(robot)
             } catch (e: any) {
                 log.error('Failed to connect roomba:', robot.name, 'with error:', e.message ?? e)
@@ -138,42 +139,111 @@ export interface DeviceInfo {
     cap?: object
 }
 
-async function getIP(blid: string, attempt: number = 1): Promise<any> {
+interface DiscoveryTarget {
+    family: 'IPv4' | 'IPv6';
+    address: string;
+    sendTo: string;
+}
+
+function getAllDiscoveryTargets(): DiscoveryTarget[] {
+    const targets: DiscoveryTarget[] = [{
+        family: 'IPv4',
+        address: '0.0.0.0',
+        sendTo: '255.255.255.255',
+    },
+    {
+        family: 'IPv6',
+        address: '::',
+        sendTo: 'ff02::1',
+    }];
+    const interfaces = os.networkInterfaces();
+    for (const name in interfaces) {
+        const networkInterface = interfaces[name];
+        if (!networkInterface) continue;
+
+        for (const details of networkInterface) {
+            if (details.internal) continue;
+
+            if (details.family === 'IPv4') {
+                const ipParts = details.address.split('.').map(part => parseInt(part, 10));
+                const maskParts = details.netmask.split('.').map(part => parseInt(part, 10));
+                const broadcastParts = ipParts.map((ipPart, i) => ipPart | (maskParts[i]! ^ 255));
+                const broadcastAddress = broadcastParts.join('.');
+                
+                targets.push({
+                    family: 'IPv4',
+                    address: details.address,
+                    sendTo: broadcastAddress,
+                });
+            } else if (details.family === 'IPv6' && !details.address.startsWith('fe80::')) {
+                const scopeId = details.scopeid ? `%${name}` : '';
+                targets.push({
+                    family: 'IPv6',
+                    address: details.address,
+                    sendTo: `ff02::1${scopeId}`,
+                });
+            }
+        }
+    }
+    const uniqueTargets = Array.from(new Map(targets.map(t => [t.sendTo, t])).values());
+    return uniqueTargets;
+}
+
+const cleanupSockets = (sockets: dgram.Socket[], discoveryTimeout: NodeJS.Timeout) => {
+    if (discoveryTimeout) clearTimeout(discoveryTimeout);
+    try {
+        sockets.forEach(socket => socket.close());
+    } catch (e) {}
+};
+
+export async function getData(blid: string, logger: any, attempt: number = 1): Promise<any> {
     return new Promise((resolve, reject) => {
         if (attempt > 5) {
             reject(new Error(`No Roomba Found With Blid: ${blid}`))
             return
         }
+        logger.debug(`Attempt ${attempt} for blid: ${blid}`);
+        const targets = getAllDiscoveryTargets();
+        if (targets.length === 0) {
+            throw new Error("No active network interfaces found to search on.");
+        }
 
-        const server = dgram.createSocket('udp4')
-
-        server.on('error', (err) => {
-            reject(err)
-        })
-
-        server.on('message', (msg) => {
-            try {
-                const parsedMsg = JSON.parse(msg.toString())
-                const [prefix, id] = parsedMsg.hostname.split('-')
-                if ((prefix === 'Roomba' || prefix === 'iRobot') && id === blid) {
-                    server.close()
-                    resolve(parsedMsg)
+        const sockets: dgram.Socket[] = [];
+        targets.forEach(target => {
+            logger.debug(`Target: ${target.address} ${target.family} ${target.sendTo}`);
+            const socket = dgram.createSocket(target.family === 'IPv4' ? 'udp4' : 'udp6');
+            sockets.push(socket);
+            
+            socket.on('error', (err) => socket.close())
+            socket.on('message', (msg, rinfo) => {
+                try {
+                    const msgString = msg.toString();
+                    logger.debug(msgString);
+                    const parsedMsg = JSON.parse(msgString);
+                    const [prefix, id] = parsedMsg.hostname?.split('-') || [];
+    
+                    if ((prefix === 'Roomba' || prefix === 'iRobot') && id === blid) {
+                        logger.debug(`Found Roomba '${blid}' at ${parsedMsg.ip}`);
+                        logger.debug(msgString);
+                        cleanupSockets(sockets, discoveryTimeout);
+                        resolve(parsedMsg);
+                    }
+                } catch (e) {
                 }
-            } catch (e: any) { }
-        })
+            });
+        
+            socket.bind({ address: target.address, exclusive: false }, () => {
+                socket.setBroadcast(true);
+                const message = Buffer.from('irobotmcs')
+                socket.send(message, 5678, target.sendTo);
+            });
+        });
 
-        server.on('listening', () => {
-            setTimeout(() => {
-                getIP(blid, attempt + 1).then(resolve).catch(reject)
-            }, 5000)
-        })
-
-        server.bind(() => {
-            const message = Buffer.from('irobotmcs')
-            server.setBroadcast(true)
-            server.send(message, 0, message.length, 5678, '255.255.255.255')
-        })
-    })
+        const discoveryTimeout = setTimeout(() => {
+            cleanupSockets(sockets, discoveryTimeout);
+            getData(blid, logger, attempt + 1).then(resolve).catch(reject)
+        }, 5000);
+    });
 }
 
 async function getCredentials(email: string, password: string): Promise<any> {
