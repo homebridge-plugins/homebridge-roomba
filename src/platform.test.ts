@@ -5,19 +5,45 @@ import { describe, expect, it, vi } from 'vitest'
 import RoombaPlatform from './platform.js'
 import type { RoombaPlatformConfig } from './settings.js'
 
+// Mock RoombaAccessory to prevent it from being instantiated during tests
+vi.mock('./accessory.js', () => ({
+  default: vi.fn(),
+}))
+
 describe('RoombaPlatform', () => {
   const mockApi = {
     hap: {
       uuid: {
         generate: vi.fn(),
       },
-      Service: {} as any,
+      Service: {
+        AccessoryInformation: 'AccessoryInformation',
+        FilterMaintenance: 'FilterMaintenance',
+        Switch: 'Switch',
+        Battery: 'Battery',
+        OccupancySensor: 'OccupancySensor',
+        MotionSensor: 'MotionSensor',
+      } as any,
       Characteristic: {} as any,
     },
-    platformAccessory: vi.fn(() => ({
-      context: {},
-      displayName: 'Mock Accessory',
-    })),
+    platformAccessory: vi.fn(() => {
+      const mockService = {
+        setPrimaryService: vi.fn(),
+        setCharacteristic: vi.fn(),
+        getCharacteristic: vi.fn().mockReturnValue({
+          onGet: vi.fn(),
+          onSet: vi.fn(),
+          updateValue: vi.fn(),
+        }),
+        updateCharacteristic: vi.fn(),
+      }
+      return {
+        context: {},
+        displayName: 'Mock Accessory',
+        getService: vi.fn().mockReturnValue(mockService),
+        addService: vi.fn().mockReturnValue(mockService),
+      }
+    }),
     registerPlatformAccessories: vi.fn(),
     updatePlatformAccessories: vi.fn(),
     unregisterPlatformAccessories: vi.fn(),
