@@ -80,6 +80,12 @@ export default class RoombaPlatform implements DynamicPlatformPlugin {
     const configuredAccessoryUUIDs = new Set<string>()
 
     for (const device of devices) {
+      // Skip devices with invalid blid
+      if (!device.blid || typeof device.blid !== 'string') {
+        this.log.error('Skipping device with invalid blid:', device.name, 'blid:', device.blid)
+        continue
+      }
+
       const uuid = this.api.hap.uuid.generate(device.blid)
       const existingAccessory = this.accessories.get(uuid)
 
