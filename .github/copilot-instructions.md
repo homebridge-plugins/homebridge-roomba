@@ -96,6 +96,7 @@ Key build commands with validated timings:
 - `npm run docs:theme` - Generate docs with default-modern theme
 
 ### Publishing Workflow
+
 This project uses Changesets for version management and release automation:
 
 - `npm exec changeset` - Create a changeset describing your changes (do this for each PR)

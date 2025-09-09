@@ -171,7 +171,7 @@ export default class RoombaAccessory implements AccessoryPlugin {
     this.deviceInfo = deviceInfo
     this.serialnum = serialNumber
     this.blid = device.blid
-    this.robotpwd = device.password
+    this.robotpwd = device.password ?? device.robotpwd
     this.ipaddress = device.ipaddress ?? device.ip
     this.version = device.softwareVer ?? this.platform.version ?? '0.0.0'
     this.cleanBehaviour = device.cleanBehaviour !== undefined ? device.cleanBehaviour : 'everywhere'
