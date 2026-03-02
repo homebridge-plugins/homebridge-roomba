@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import registerPlatform from './index.js'
 import RoombaPlatform from './platform.js'
-import { PLATFORM_NAME } from './settings.js'
+import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js'
 
 describe('index.ts', () => {
   it('should register the platform with homebridge', () => {
@@ -14,6 +14,6 @@ describe('index.ts', () => {
 
     registerPlatform(api)
 
-    expect(api.registerPlatform).toHaveBeenCalledWith(PLATFORM_NAME, RoombaPlatform)
+    expect(api.registerPlatform).toHaveBeenCalledWith(PLUGIN_NAME, PLATFORM_NAME, RoombaPlatform)
   })
 })
