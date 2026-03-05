@@ -31,7 +31,7 @@ export class RoboticVacuumAccessory extends BaseMatterAccessory {
     const firmwareRevision = device.softwareVer || '0.0.0'
 
     super(api, log, {
-      uuid: api.matter.uuid.generate(serialNumber),
+      uuid: api.matter.uuid.generate(device.blid),
       displayName,
       deviceType: api.matter.deviceTypes.RoboticVacuumCleaner,
       serialNumber,

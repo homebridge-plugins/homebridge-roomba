@@ -24,6 +24,8 @@ export interface BaseMatterAccessoryConfig {
 export abstract class BaseMatterAccessory implements MatterAccessory {
   // Required MatterAccessory properties
   public readonly uuid: string
+  /** Uppercase alias for uuid, required by some Homebridge versions */
+  public readonly UUID: string
   public readonly displayName: string
   public readonly deviceType: EndpointType
   public readonly serialNumber: string
@@ -46,6 +48,7 @@ export abstract class BaseMatterAccessory implements MatterAccessory {
     this.log = log
 
     this.uuid = config.uuid
+    this.UUID = config.uuid
     this.displayName = config.displayName
     this.deviceType = config.deviceType
     this.serialNumber = config.serialNumber
@@ -133,8 +136,9 @@ export abstract class BaseMatterAccessory implements MatterAccessory {
   }
 
   /** Convert this instance to a plain MatterAccessory object for registration */
-  public toAccessory(): MatterAccessory {
+  public toAccessory(): MatterAccessory & { UUID: string } {
     return {
+      UUID: this.uuid,
       uuid: this.uuid,
       displayName: this.displayName,
       deviceType: this.deviceType,
