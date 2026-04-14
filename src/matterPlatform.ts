@@ -120,7 +120,8 @@ export default class RoombaMatterPlatform implements DynamicPlatformPlugin {
 
     const devices: (Robot & DeviceConfig)[] = (await this.discoveryMethod()) as any
     const configuredUUIDs = new Set<string>()
-    const accessoriesToRegister: any[] = []
+    const platformToRegister: any[] = []
+    const externalToRegister: any[] = []
 
     for (const device of devices) {
       const roombaAcc = new RoombaMatterAccessory(this.api, this.log, device, this.config, this.version)
@@ -139,23 +140,44 @@ export default class RoombaMatterPlatform implements DynamicPlatformPlugin {
         existingMatterAccessory.context = matterAccessoryData.context
         existingMatterAccessory.clusters = matterAccessoryData.clusters
         existingMatterAccessory.handlers = matterAccessoryData.handlers
-        accessoriesToRegister.push(existingMatterAccessory)
       } else {
         this.log.info('Adding new Matter accessory:', device.name)
-        accessoriesToRegister.push(matterAccessoryData)
         this.matterAccessories.set(uuid, matterAccessoryData)
       }
 
       this.roombaAccessories.set(uuid, roombaAcc)
+
+      const accessoryToUse = existingMatterAccessory ?? matterAccessoryData
+      const isExternal = device.externalAccessory ?? this.config.externalAccessory ?? false
+      if (isExternal) {
+        externalToRegister.push(accessoryToUse)
+      } else {
+        platformToRegister.push(accessoryToUse)
+      }
     }
 
-    // Register all accessories at once
-    if (accessoriesToRegister.length > 0) {
+    if (platformToRegister.length > 0) {
       try {
-        await matterApi.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, accessoriesToRegister)
-        this.log.info(`Registered ${accessoriesToRegister.length} Roomba Matter accessory(ies)`)
+        await matterApi.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, platformToRegister)
+        this.log.info(`Registered ${platformToRegister.length} Roomba Matter accessory(ies)`)
       } catch (e: any) {
         this.log.error('Failed to register Matter accessories:', e.message ?? e)
+      }
+    }
+
+    if (externalToRegister.length > 0) {
+      try {
+        if (matterApi.publishExternalAccessories) {
+          await matterApi.publishExternalAccessories(PLUGIN_NAME, externalToRegister)
+          this.log.info(`Published ${externalToRegister.length} Roomba Matter accessory(ies) as external`)
+        } else {
+          // Fallback: register as platform accessories if the Matter API version
+          // does not yet expose publishExternalAccessories.
+          await matterApi.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, externalToRegister)
+          this.log.info(`Registered ${externalToRegister.length} Roomba Matter accessory(ies) (external not supported by this Homebridge version, fell back to platform)`)
+        }
+      } catch (e: any) {
+        this.log.error('Failed to publish external Matter accessories:', e.message ?? e)
       }
     }
 
