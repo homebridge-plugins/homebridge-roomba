@@ -227,7 +227,7 @@
                                 }
                             ]
                         },
-        "idleWatchInterval": {
+                        "idleWatchInterval": {
                             "type": "integer",
                             "title": "Idle Poll Interval (minutes)",
                             "description": "How often to poll Roomba's status when it is idle. Defaults to 15 minutes.",
