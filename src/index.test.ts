@@ -71,13 +71,17 @@ describe('index.ts', () => {
       expect(MatterPlatform).not.toHaveBeenCalled()
     })
 
-    it('should use the HAP platform when preferMatter is false', () => {
+    it('should fall back to HAP when Matter platform initialization fails', () => {
       const HAPPlatform = vi.fn()
-      const MatterPlatform = vi.fn()
+      const MatterPlatform = vi.fn(function MatterPlatformConstructor() {
+        throw new Error('Matter initialization failed')
+      })
       const Proxy = createPlatformProxy(HAPPlatform, MatterPlatform)
 
-      const log = {}
-      const config = { preferMatter: false }
+      const log = {
+        warn: vi.fn(),
+      }
+      const config = {}
       const api = {
         isMatterAvailable: vi.fn().mockReturnValue(true),
         isMatterEnabled: vi.fn().mockReturnValue(true),
@@ -85,8 +89,9 @@ describe('index.ts', () => {
 
       new Proxy(log, config, api)
 
+      expect(MatterPlatform).toHaveBeenCalledWith(log, config, api)
       expect(HAPPlatform).toHaveBeenCalledWith(log, config, api)
-      expect(MatterPlatform).not.toHaveBeenCalled()
+      expect(log.warn).toHaveBeenCalled()
     })
   })
 })

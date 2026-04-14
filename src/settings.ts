@@ -23,11 +23,6 @@ export interface RoombaPlatformConfig extends PlatformConfig {
      */
     enableMatter?: boolean
     /**
-     * Prefer Matter over HAP when both are available.
-     * Defaults to true.
-     */
-    preferMatter?: boolean
-    /**
      * Publish all Roomba devices as external accessories (independent HomeKit
      * bridges) rather than as part of the main Homebridge bridge.
      * Can be overridden per device.

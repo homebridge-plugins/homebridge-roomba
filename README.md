@@ -54,65 +54,78 @@ approach for configuring your Roomba.
 
 ### Manual configuration
 
-Here is example JSON for configuring a Roomba accessory:
+Here is example JSON for configuring the Roomba platform:
 
 ```json
 {
-  "accessory": "Roomba",
+  "platform": "Roomba",
   "name": "Roomba",
-  "model": "960",
-  "blid": "1234567890",
-  "robotpwd": "aPassword",
-  "ipaddress": "192.168.x.xxx",
-  "dockContactSensor": true,
-  "runningContactSensor": true,
-  "binContactSensor": true,
-  "cleanBehaviour": "rooms",
-  "mission": {
-    "ordered": 1,
-    "pmap_id": "ab1cd_eFGhiJklMN2PqRsT",
-    "regions": [
-      {
-        "region_id": "1",
-        "type": "rid",
-        "params": {
-          "noAutoPasses": true,
-          "twoPasses": true
-        }
-      }
-    ],
-    "user_pmapv_id": "220101T120101"
-  },
-  "stopBehaviour": "home"
+  "enableMatter": true,
+  "externalAccessory": false,
+  "devices": [
+    {
+      "name": "Roomba",
+      "model": "960",
+      "blid": "1234567890",
+      "robotpwd": "aPassword",
+      "ipaddress": "192.168.x.xxx",
+      "dockContactSensor": true,
+      "runningContactSensor": true,
+      "binContactSensor": true,
+      "cleanBehaviour": "rooms",
+      "mission": {
+        "ordered": 1,
+        "pmap_id": "ab1cd_eFGhiJklMN2PqRsT",
+        "regions": [
+          {
+            "region_id": "1",
+            "type": "rid",
+            "params": {
+              "noAutoPasses": true,
+              "twoPass": true
+            }
+          }
+        ],
+        "user_pmapv_id": "220101T120101"
+      },
+      "stopBehaviour": "home"
+    }
+  ]
 }
 ```
 
+When `enableMatter` is left enabled, the plugin will use Matter on Homebridge v2 when available and automatically fall back to HAP if Matter is unavailable or fails to initialize.
+
 | Key                    | Description                                                                         | Default Value |
 | ---------------------- | ----------------------------------------------------------------------------------- | ------------- |
-| `accessory`            | Loads this plugin. Must be set to `Roomba`                                         |               |
-| `name`                 | The name of your Roomba as it should appear in Homebridge and HomeKit               |               |
-| `model`                | The model of your Roomba as you'd like it to appear in HomeKit                      |               |
-| `serialnum`            | The serial number as you'd like it to appear in HomeKit                             |               |
-| `blid`                 | The `blid` of your Roomba, obtained during setup                                    |               |
-| `robotpwd`             | The password for your Roomba, obtained during setup                                 |               |
-| `ipaddress`            | The [IP address](#troubleshooting) of your Roomba on your network                   |               |
-| `dockContactSensor`    | Add a contact sensor to HomeKit that's _closed_ when Roomba is docked               | `true`        |
-| `runningContactSensor` | Add a contact sensor to HomeKit that's _open_ when Roomba is running                | `false`       |
-| `binContactSensor`     | Add a contact sensor to HomeKit that's _open_ when Roomba's bin is full             | `false`       |
-| `dockingContactSensor` | Add a contact sensor to HomeKit that's _open_ when Roomba is docking                | `false`       |
-| `tankContactSensor`    | Add a contact sensor to HomeKit that's _open_ when Braava's water tank is empty     | `false`       |
-| `cleanBehaviour`       | Roomba can clean everywhere or go on a specific cleaning mission when started       | `everywhere`  |
-| `mission`              | Instructions passed to your Roomba for a specific cleaning mission                  |               |
-| `ordered`              | Clean rooms in order specified                                                      | `1`           |
-| `pmap_id`              | The id of your map in the iRobot app                                                |               |
-| `regions`              | One or more rooms to be cleaned during mission                                      |               |
-| `region_id`            | The region id of the room to be cleaned                                             |               |
-| `type`                 | The type of region id specified                                                     | `rid`         |
-| `params`               | Additional parameters for the room to be cleaned                                    |               |
-| `noAutoPasses`         | Specify the number of cleaning passes for the room to be cleaned                    | `false`       |
-| `twoPass`              | Specify two cleaning passes for the room                                            | `false`       |
-| `user_pmapv_id`        | The version id of your map in the iRobot app (contains Date and Time last modified) |               |
-| `stopBehaviour`        | Roomba can go home or pause when stopped                                            | `home`        |
+| `platform`             | Loads this plugin. Must be set to `Roomba`                                         |               |
+| `name`                 | The platform name shown in Homebridge                                              |               |
+| `enableMatter`         | Enables Matter on Homebridge v2; otherwise the plugin uses HAP                     | `true`        |
+| `externalAccessory`    | Publish all configured devices as external accessories                             | `false`       |
+| `devices`              | One or more Roomba devices managed by the platform                                 |               |
+| `devices[].name`       | The name of your Roomba as it should appear in Homebridge and HomeKit              |               |
+| `devices[].model`      | The model of your Roomba as you'd like it to appear in HomeKit                     |               |
+| `devices[].serialnum`  | The serial number as you'd like it to appear in HomeKit                            |               |
+| `devices[].blid`       | The `blid` of your Roomba, obtained during setup                                   |               |
+| `devices[].robotpwd`   | The password for your Roomba, obtained during setup                                |               |
+| `devices[].ipaddress`  | The [IP address](#troubleshooting) of your Roomba on your network                  |               |
+| `devices[].dockContactSensor`    | Add a contact sensor to HomeKit that's _closed_ when Roomba is docked       | `true`        |
+| `devices[].runningContactSensor` | Add a contact sensor to HomeKit that's _open_ when Roomba is running        | `false`       |
+| `devices[].binContactSensor`     | Add a contact sensor to HomeKit that's _open_ when Roomba's bin is full     | `false`       |
+| `devices[].dockingContactSensor` | Add a contact sensor to HomeKit that's _open_ when Roomba is docking        | `false`       |
+| `devices[].tankContactSensor`    | Add a contact sensor to HomeKit that's _open_ when Braava's water tank is empty | `false`   |
+| `devices[].cleanBehaviour`       | Roomba can clean everywhere or go on a specific cleaning mission when started | `everywhere`  |
+| `devices[].mission`              | Instructions passed to your Roomba for a specific cleaning mission          |               |
+| `devices[].mission.ordered`      | Clean rooms in order specified                                              | `1`           |
+| `devices[].mission.pmap_id`      | The id of your map in the iRobot app                                        |               |
+| `devices[].mission.regions`      | One or more rooms to be cleaned during mission                              |               |
+| `devices[].mission.regions[].region_id` | The region id of the room to be cleaned                             |               |
+| `devices[].mission.regions[].type` | The type of region id specified                                           | `rid`         |
+| `devices[].mission.regions[].params` | Additional parameters for the room to be cleaned                        |               |
+| `devices[].mission.regions[].params.noAutoPasses` | Specify the number of cleaning passes for the room to be cleaned | `false` |
+| `devices[].mission.regions[].params.twoPass` | Specify two cleaning passes for the room                          | `false`       |
+| `devices[].mission.user_pmapv_id` | The version id of your map in the iRobot app (contains date and time last modified) |       |
+| `devices[].stopBehaviour`        | Action taken when Roomba is turned off                                      | `home`        |
 
 ### Cleaning Mission configuration
 

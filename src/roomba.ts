@@ -138,42 +138,69 @@ export interface DeviceInfo {
     cap?: object
 }
 
-async function getIP(blid: string, attempt: number = 1): Promise<any> {
-    return new Promise((resolve, reject) => {
-        if (attempt > 5) {
-            reject(new Error(`No Roomba Found With Blid: ${blid}`))
-            return
-        }
+async function getIP(blid: string, maxAttempts: number = 5): Promise<any> {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        const result = await new Promise<any | null>((resolve, reject) => {
+            const server = dgram.createSocket('udp4')
+            let settled = false
 
-        const server = dgram.createSocket('udp4')
-
-        server.on('error', (err) => {
-            reject(err)
-        })
-
-        server.on('message', (msg) => {
-            try {
-                const parsedMsg = JSON.parse(msg.toString())
-                const [prefix, id] = parsedMsg.hostname.split('-')
-                if ((prefix === 'Roomba' || prefix === 'iRobot') && id === blid) {
-                    server.close()
-                    resolve(parsedMsg)
+            const cleanup = (err?: Error) => {
+                if (settled) {
+                    return
                 }
-            } catch (e: any) { }
+                settled = true
+                // Suppress any error fired during close (e.g. send-in-flight)
+                server.removeAllListeners()
+                server.on('error', () => {})
+                server.close()
+                if (err) {
+                    reject(err)
+                } else {
+                    resolve(null) // null = not found this attempt, try again
+                }
+            }
+
+            server.on('error', (err) => {
+                cleanup(err)
+            })
+
+            server.on('message', (msg) => {
+                if (settled) {
+                    return
+                }
+                try {
+                    const parsedMsg = JSON.parse(msg.toString())
+                    const [prefix, id] = parsedMsg.hostname.split('-')
+                    if ((prefix === 'Roomba' || prefix === 'iRobot') && id === blid) {
+                        settled = true
+                        server.removeAllListeners()
+                        server.on('error', () => {})
+                        server.close()
+                        resolve(parsedMsg)
+                    }
+                } catch (e: any) { }
+            })
+
+            server.bind(() => {
+                const message = Buffer.from('irobotmcs')
+                server.setBroadcast(true)
+                server.send(message, 0, message.length, 5678, '255.255.255.255', (err) => {
+                    if (err) {
+                        cleanup(err)
+                        return
+                    }
+                    // Wait 5 s for a matching response before closing and retrying
+                    setTimeout(() => cleanup(), 5000)
+                })
+            })
         })
 
-        server.on('listening', () => {
-            setTimeout(() => {
-                getIP(blid, attempt + 1).then(resolve).catch(reject)
-            }, 5000)
-        })
+        if (result !== null) {
+            return result
+        }
+    }
 
-        server.bind(() => {
-            const message = Buffer.from('irobotmcs')
-            server.setBroadcast(true)
-            server.send(message, 0, message.length, 5678, '255.255.255.255')
-        })
-    })
+    throw new Error(`No Roomba Found With Blid: ${blid}`)
 }
 
 async function getCredentials(email: string, password: string): Promise<any> {
@@ -310,90 +337,5 @@ function iRobotLoginResponse(error: Error | null, _response?: IncomingMessage, b
         resolve?.(body.robots)
     } else {
         reject?.(new Error(`Fatal error logging into iRobot account. Please check your credentials or API Key. ${body?.statusCode}`))
-    }
-}
-
-declare module 'dorita980' {
-    export class RoombaLocal {
-        constructor(username: string, password: string, ip: string, version?: 2 | 3, options?: object | number)
-        on(event: 'connect', listener: () => void): this
-        on(event: 'reconnect', listener: () => void): this
-        on(event: 'close', listener: () => void): this
-        on(event: 'offline', listener: () => void): this
-        on(event: 'update', listener: (data: Data) => void): this
-        on(event: 'mission', listener: (data: cleanMissionStatus) => void): this
-        on(event: 'error', listener: (error: Error) => void): this
-        on(event: 'state', listener: (data: unknown) => void): this
-        removeAllListeners(event?: string | symbol): this
-        end(): void
-        getTime(): Promise<fullRobotState>
-        getBbrun(): Promise<fullRobotState>
-        getLangs(): Promise<fullRobotState>
-        getSys(): Promise<fullRobotState>
-        getWirelessLastStatus(): Promise<fullRobotState>
-        getWeek(): Promise<fullRobotState>
-        getPreferences(waitForFields?: string[]): this
-        getRobotState(waitForFields?: string[]): this
-        getMission(calwaitForFields?: string[]): this
-        getBasicMission(waitForFields?: string[]): this
-        getWirelessConfig(): Promise<fullRobotState>
-        getWirelessStatus(): Promise<fullRobotState>
-        getCloudConfig(): Promise<fullRobotState>
-        getSKU(): Promise<fullRobotState>
-        start(): Promise<{ ok: null }>
-        clean(): Promise<{ ok: null }>
-        cleanRoom(callback?: (args: any) => Promise<{ ok: null }>): this
-        pause(): Promise<{ ok: null }>
-        stop(): Promise<{ ok: null }>
-        resume(): Promise<{ ok: null }>
-        dock(): Promise<{ ok: null }>
-        find(): Promise<{ ok: null }>
-        evac(): Promise<{ ok: null }>
-        train(): Promise<{ ok: null }>
-        setWeek(callback?: (args: any) => Promise<{ ok: null }>): this
-        setPreferences(callback?: (args: any) => Promise<{ ok: null }>): this
-        setCarpetBoostAuto(): Promise<{ ok: null }>
-        setCarpetBoostPerformance(): Promise<{ ok: null }>
-        setCarpetBoostEco(): Promise<{ ok: null }>
-        setEdgeCleanOn(): Promise<{ ok: null }>
-        setEdgeCleanOff(): Promise<{ ok: null }>
-        setCleaningPassesAuto(): Promise<{ ok: null }>
-        setCleaningPassesOne(): Promise<{ ok: null }>
-        setCleaningPassesTwo(): Promise<{ ok: null }>
-        setAlwaysFinishOn(): Promise<{ ok: null }>
-        setAlwaysFinishOff(): Promise<{ ok: null }>
-    }
-
-    export interface fullRobotState { }
-
-    interface cleanMissionStatus {
-        cleanMissionStatus: {
-            cycle: string
-            phase: string
-            expireM: number
-            rechrgM: number
-            error: number
-            notReady: number
-            mssnM: number
-            sqft: number
-            initiator: string
-            nMssn: number
-        }
-        pose: { theta: number, point: { x: number, y: number } }
-    }
-
-    interface Data {
-        state: {
-            reported: {
-                soundVer: string
-                uiSwVer: string
-                navSwVer: string
-                wifiSwVer: string
-                mobilityVer: string
-                bootloaderVer: string
-                umiVer: string
-                softwareVer: string
-            }
-        }
     }
 }

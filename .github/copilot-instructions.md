@@ -4,6 +4,68 @@ Homebridge plugin for iRobot Roomba vacuum cleaners. This is a TypeScript-based 
 
 Always reference these instructions first and fallback to search or bash commands only when you encounter unexpected information that does not match the info here.
 
+## Matter and HomeKit Integration
+
+### Matter Implementation
+The plugin implements dual-mode device registration:
+- **HAP mode** (HomeKit Accessory Protocol): Base implementation via `LutronCasetaLeap` class
+- **Matter mode**: Extended via `LutronCasetaLeapMatterPlatform` class that overrides `processDevice()`
+
+When Homebridge's Matter API is available, `LutronCasetaLeapMatterPlatform.processDevice()` registers accessories with both HAP and Matter simultaneously. If Matter API is not available, the plugin transparently falls back to HAP-only mode.
+
+### Matter Device Type Mapping
+All Matter device types use `api.matter.deviceTypes.*` objects from the homebridge-matter API:
+
+| Device Type | HAP Service | Matter DeviceType | Matter Clusters |
+|---|---|---|---|
+| WallDimmer | Lightbulb | `DimmableLight` | onOff, levelControl |
+| WallSwitch | Switch | `OnOffLight` | onOff |
+| SerenaTiltOnlyWoodBlind | WindowCovering | `WindowCovering` | windowCovering |
+| RPSOccupancySensor | OccupancySensor | `OccupancySensor` | occupancySensing |
+| Pico Remotes | StatelessProgrammableSwitch | `GenericSwitch` | switch |
+
+### Authoritative Matter References
+
+1. https://matter-js.github.io/docs/index.html
+2. https://github.com/homebridge-plugins/homebridge-matter: Official Homebridge Matter plugin repository with extensive documentation and examples
+  - For all Matter cluster, attribute, and device type specifications, use the official homebridge-matter wiki:
+    - [Introduction](https://github.com/homebridge-plugins/homebridge-matter/wiki/Introduction)
+    - [Core Concepts](https://github.com/homebridge-plugins/homebridge-matter/wiki/Core-Concepts)
+    - [Getting Started](https://github.com/homebridge-plugins/homebridge-matter/wiki/Getting-Started)
+    - [State Management](https://github.com/homebridge-plugins/homebridge-matter/wiki/State-Management)
+    - [Monitoring External Changes](https://github.com/homebridge-plugins/homebridge-matter/wiki/Monitoring-External-Changes)
+    - [Best Practices](https://github.com/homebridge-plugins/homebridge-matter/wiki/Best-Practices)
+    - [Advanced Patterns](https://github.com/homebridge-plugins/homebridge-matter/wiki/Advanced-Patterns)
+    - [API Reference](https://github.com/homebridge-plugins/homebridge-matter/wiki/API-Reference)
+    - [Matter Types](https://github.com/homebridge-plugins/homebridge-matter/wiki/Matter-Types)
+    - [Value Conversions](https://github.com/homebridge-plugins/homebridge-matter/wiki/Value-Conversions)
+
+  - **Device References:**
+    - [Lighting Devices (§4)](https://github.com/homebridge-plugins/homebridge-matter/wiki/Section-4-Lighting) — DimmableLight, OnOffLight
+    - [Switches (§6)](https://github.com/homebridge-plugins/homebridge-matter/wiki/Section-6-Switches) — OnOffSwitch
+    - [Sensors (§7)](https://github.com/homebridge-plugins/homebridge-matter/wiki/Section-7-Sensors) — OccupancySensor
+    - [Closure Devices (§8)](https://github.com/homebridge-plugins/homebridge-matter/wiki/Section-8-Closure) — WindowCovering
+
+## Changelog Format Requirements
+
+When generating a changelog release entry, always use this exact structure:
+
+1. Release header with compare URL using `compare/tag/vX.Y.Z`:
+
+```md
+## [X.Y.Z](https://github.com/homebridge-plugins/homebridge-updater/compare/tag/vX.Y.Z) (YYYY-MM-DD)
+```
+
+2. Standard sections as needed (`### Bug Fixes`, `### Enhancements`, `### Documentation`, etc.).
+
+3. End each release entry with a full changelog comparison URL to the previous version:
+
+```md
+**Full Changelog**: https://github.com/homebridge-plugins/homebridge-updater/compare/vX.Y.(Z-1)...vX.Y.Z
+```
+
+Do not omit either URL line when creating a new release entry.
+
 ## PR Workflow and Beta Branch Requirements
 
 ### Branch Targeting Strategy

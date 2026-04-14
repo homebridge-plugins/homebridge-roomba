@@ -70,7 +70,7 @@ interface RoombaHolder {
  * Roomba states to Matter clusters, and handles Matter commands (start, stop, pause,
  * resume, dock).
  */
-export class RoombaMatterAccessory {
+export class RoboticVacuumCleaner {
   private readonly _api: API
   private readonly _log: Logging
   private readonly _device: Robot & DeviceConfig
@@ -543,7 +543,7 @@ export class RoombaMatterAccessory {
       operationalState = RVC_STATE.PAUSED
       runMode = RVC_RUN_MODE.IDLE
     } else if (status.charging) {
-      operationalState = RVC_STATE.DOCKED
+      operationalState = RVC_STATE.CHARGING
       runMode = RVC_RUN_MODE.IDLE
     } else {
       operationalState = RVC_STATE.STOPPED

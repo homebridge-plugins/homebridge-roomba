@@ -5,23 +5,32 @@
     "port": 51826,
     "pin": "031-45-156"
   },
-  "description": "Homebridge plugin for Roomba 9xx",
-  "platforms": [],
+  "description": "Homebridge platform plugin for Roomba devices",
+  "platforms": [
+    {
+      "platform": "Roomba",
+      "name": "Roomba",
+      "enableMatter": true,
+      "externalAccessory": false,
+      "devices": [
+        {
+          "name": "Roomba",
+          "model": "960",
+          "blid": "1234567890",
+          "robotpwd": "aPassword",
+          "ipaddress": "10.0.0.30",
+          "dockContactSensor": true,
+          "runningContactSensor": true,
+          "binContactSensor": false,
+          "cleanBehaviour": "everywhere",
+          "stopBehaviour": "home"
+        }
+      ]
+    }
+  ],
   "plugins": [
     "homebridge-roomba"
   ],
-  "accessories": [
-    {
-      "accessory": "Roomba",
-      "name": "Roomba",
-      "model": "960",
-      "blid": "1234567890",
-      "robotpwd": "aPassword",
-      "ipaddress": "10.0.0.30",
-      "autoRefreshEnabled": true,
-      "keepAliveEnabled": true,
-      "cacheTTL": 30
-    }
-  ],
+  "accessories": [],
   "debug": false
 }

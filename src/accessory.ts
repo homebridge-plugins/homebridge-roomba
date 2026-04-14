@@ -1,7 +1,7 @@
 import type { RobotMission, RobotState, Roomba } from 'dorita980'
 import type { AccessoryPlugin, API, CharacteristicGetCallback, CharacteristicSetCallback, CharacteristicValue, Logging, PlatformAccessory, Service, WithUUID } from 'homebridge'
 
-import type RoombaPlatform from './platform.js'
+import type RoombaPlatform from './Platform.HAP.js'
 import type { DeviceInfo, Robot } from './roomba.js'
 import type { DeviceConfig, RoombaPlatformConfig } from './settings.js'
 

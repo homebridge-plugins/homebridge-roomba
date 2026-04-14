@@ -1,4 +1,5 @@
 import type { Logging } from 'homebridge'
+import type { RobotState as DoritaRobotState } from 'dorita980'
 
 import process from 'node:process'
 
@@ -19,11 +20,9 @@ const myRobotViaLocal = new dorita980.Local(robot_blid, robot_pwd, robot_ip_addr
 
 myRobotViaLocal.on('connect', init)
 
-type RobotState = dorita980.RobotState & { lastCommand?: { regions: { regionId: number, regionType: string }[] } }
-
 function init() {
   myRobotViaLocal.getRobotState(['lastCommand'])
-    .then((result: RobotState) => {
+    .then((result: DoritaRobotState) => {
       logger.info('lastCommand:', result.lastCommand, ', regionsDetails:', result.lastCommand?.regions)
       myRobotViaLocal.end()
     })

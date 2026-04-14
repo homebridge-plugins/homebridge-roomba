@@ -5,7 +5,7 @@ import type { Robot } from './roomba.js'
 
 import { readFileSync } from 'node:fs'
 
-import { RoombaMatterAccessory } from './matterAccessory.js'
+import { RoboticVacuumCleaner } from './matterAccessory.js'
 import { getRoombas } from './roomba.js'
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js'
 
@@ -20,7 +20,7 @@ export default class RoombaMatterPlatform implements DynamicPlatformPlugin {
   private log: Logging
   private readonly config: RoombaPlatformConfig
   private readonly matterAccessories: Map<string, any> = new Map()
-  private readonly roombaAccessories: Map<string, RoombaMatterAccessory> = new Map()
+  private readonly roombaAccessories: Map<string, RoboticVacuumCleaner> = new Map()
   /**
    * Cached HAP accessories restored by Homebridge on startup. These are
    * accumulated in `configureAccessory` and then unregistered during
@@ -111,20 +111,14 @@ export default class RoombaMatterPlatform implements DynamicPlatformPlugin {
       return
     }
 
-    // Unregister any cached HAP accessories — the Matter platform does not use them.
-    if (this.cachedHapAccessories.length > 0) {
-      this.log.info('Unregistering %d cached HAP accessory(ies) (switching to Matter)', this.cachedHapAccessories.length)
-      this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, this.cachedHapAccessories)
-      this.cachedHapAccessories.length = 0
-    }
-
     const devices: (Robot & DeviceConfig)[] = (await this.discoveryMethod()) as any
     const configuredUUIDs = new Set<string>()
     const platformToRegister: any[] = []
     const externalToRegister: any[] = []
+    let registrationSucceeded = true
 
     for (const device of devices) {
-      const roombaAcc = new RoombaMatterAccessory(this.api, this.log, device, this.config, this.version)
+      const roombaAcc = new RoboticVacuumCleaner(this.api, this.log, device, this.config, this.version)
       const uuid = roombaAcc.UUID
       configuredUUIDs.add(uuid)
 
@@ -135,25 +129,33 @@ export default class RoombaMatterPlatform implements DynamicPlatformPlugin {
 
       if (existingMatterAccessory) {
         this.log.debug('Updating cached Matter accessory:', device.name)
-        // Update properties on the cached accessory
+        // Re-attach handlers (not persisted across restarts) and update mutable
+        // fields. Cached accessories are automatically re-registered by
+        // Homebridge — do NOT push them to platformToRegister/externalToRegister.
         existingMatterAccessory.displayName = matterAccessoryData.displayName
         existingMatterAccessory.context = matterAccessoryData.context
         existingMatterAccessory.clusters = matterAccessoryData.clusters
         existingMatterAccessory.handlers = matterAccessoryData.handlers
+        // Persist context/display name changes
+        try {
+          await matterApi.updatePlatformAccessories([existingMatterAccessory])
+        } catch (e: any) {
+          this.log.warn('Failed to update cached Matter accessory:', e.message ?? e)
+        }
       } else {
         this.log.info('Adding new Matter accessory:', device.name)
         this.matterAccessories.set(uuid, matterAccessoryData)
+        // Only NEW accessories need to be explicitly registered; cached ones are
+        // automatically re-registered after configureMatterAccessory() is called.
+        const isExternal = device.externalAccessory ?? this.config.externalAccessory ?? false
+        if (isExternal) {
+          externalToRegister.push(matterAccessoryData)
+        } else {
+          platformToRegister.push(matterAccessoryData)
+        }
       }
 
       this.roombaAccessories.set(uuid, roombaAcc)
-
-      const accessoryToUse = existingMatterAccessory ?? matterAccessoryData
-      const isExternal = device.externalAccessory ?? this.config.externalAccessory ?? false
-      if (isExternal) {
-        externalToRegister.push(accessoryToUse)
-      } else {
-        platformToRegister.push(accessoryToUse)
-      }
     }
 
     if (platformToRegister.length > 0) {
@@ -162,10 +164,11 @@ export default class RoombaMatterPlatform implements DynamicPlatformPlugin {
         this.log.info(`Registered ${platformToRegister.length} Roomba Matter accessory(ies)`)
       } catch (e: any) {
         this.log.error('Failed to register Matter accessories:', e.message ?? e)
+        registrationSucceeded = false
       }
     }
 
-    if (externalToRegister.length > 0) {
+    if (registrationSucceeded && externalToRegister.length > 0) {
       try {
         if (matterApi.publishExternalAccessories) {
           await matterApi.publishExternalAccessories(PLUGIN_NAME, externalToRegister)
@@ -178,7 +181,20 @@ export default class RoombaMatterPlatform implements DynamicPlatformPlugin {
         }
       } catch (e: any) {
         this.log.error('Failed to publish external Matter accessories:', e.message ?? e)
+        registrationSucceeded = false
       }
+    }
+
+    if (!registrationSucceeded) {
+      this.log.warn('Matter registration did not complete successfully. Preserving cached HAP accessories for fallback.')
+      return
+    }
+
+    // Only remove cached HAP accessories after Matter registration succeeds.
+    if (this.cachedHapAccessories.length > 0) {
+      this.log.info('Unregistering %d cached HAP accessory(ies) (switching to Matter)', this.cachedHapAccessories.length)
+      this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, this.cachedHapAccessories)
+      this.cachedHapAccessories.length = 0
     }
 
     // Remove stale accessories
