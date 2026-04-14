@@ -1,5 +1,32 @@
 # Changelog
 
+## [3.0.0](https://github.com/homebridge-plugins/homebridge-roomba/compare/tag/v3.0.0) (2026-05-04)
+
+### Breaking Changes
+
+- Homebridge Matter support is now the default when running on Homebridge v2 with Matter enabled. Roomba devices are registered as `RoboticVacuumCleaner` Matter accessories. Set `enableMatter: false` to keep the existing HAP-only behaviour.
+- Platform files renamed: `platform.ts` → `Platform.HAP.ts`, `matterPlatform.ts` → `Platform.Matter.ts`. Affects contributors and any tooling referencing these paths directly.
+- `preferMatter` config option removed; use `enableMatter` instead.
+
+### Enhancements
+
+- Add Homebridge Matter support for Homebridge v2.0 — Roomba devices are registered as `RoboticVacuumCleaner` Matter accessories when running on Homebridge v2 with Matter enabled. Falls back to HAP automatically when Matter is unavailable or fails to initialize.
+- Add `externalAccessory` config option (platform-level and per-device) to publish Roomba as an independent HomeKit bridge with its own QR code.
+- Add Braava m6 water tank status as a filter maintenance indicator.
+
+### Bug Fixes
+
+- Fix UDP socket leak in Roomba auto-discovery (`getIP`): each retry attempt now properly closes its socket before opening the next one, preventing socket and timer accumulation across failed attempts.
+- Fix Matter cached accessory re-registration on every Homebridge restart: cached (restored) accessories are no longer passed to `registerPlatformAccessories`, which was causing duplicate registration errors.
+- Fix RVC operational state mapping: `charging` now correctly maps to `Charging (65)` instead of `Docked (66)`.
+
+### Dependencies
+
+- Updated all dependencies to latest versions.
+- Migrated from `@karlvr/dorita980` to `dorita980 v4`.
+
+**Full Changelog**: https://github.com/homebridge-plugins/homebridge-roomba/compare/v2.1.0...v3.0.0
+
 ## [2.1.0](https://github.com/homebridge-plugins/homebridge-roomba/releases/tag/v2.1.0) (2025-03-04)
 
 ### What's Changes

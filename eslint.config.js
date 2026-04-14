@@ -10,24 +10,24 @@ export default antfu(
     },
     rules: {
       'curly': ['error', 'multi-line'],
-      'import/extensions': ['error', 'ignorePackages'],
       'import/order': 0,
       'jsdoc/check-alignment': 'error',
       'jsdoc/check-line-alignment': 'error',
+      'no-new': 0,
+      'no-undef': 0,
       'perfectionist/sort-exports': 'error',
       'perfectionist/sort-imports': [
         'error',
         {
           groups: [
-            'builtin-type',
-            'external-type',
-            'internal-type',
-            ['parent-type', 'sibling-type', 'index-type'],
+            'type-builtin',
+            'type-external',
+            'type-internal',
+            ['type-parent', 'type-sibling', 'type-index'],
             'builtin',
             'external',
             'internal',
             ['parent', 'sibling', 'index'],
-            'object',
             'unknown',
           ],
           order: 'asc',
@@ -42,9 +42,6 @@ export default antfu(
       'test/no-only-tests': 'error',
       'unicorn/no-useless-spread': 'error',
       'unused-imports/no-unused-vars': ['error', { caughtErrors: 'none' }],
-      'no-new': 0, // Disable the no-new rule
-      'new-cap': 0, // Disable the new-cap rule
-      'no-undef': 0, // Disable the no-undef rule
     },
   },
 )
