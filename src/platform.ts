@@ -103,7 +103,7 @@ export default class RoombaPlatform implements DynamicPlatformPlugin {
         // (e.g. the user just toggled externalAccessory on), unregister it.
         const cachedAccessory = this.accessories.get(uuid)
         if (cachedAccessory) {
-          this.log.info('Unregistering cached platform accessory in favour of external:', device.name)
+          this.log.info('Unregistering cached platform accessory in favor of external:', device.name)
           this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [cachedAccessory])
           this.accessories.delete(uuid)
         }
