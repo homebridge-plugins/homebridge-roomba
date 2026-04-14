@@ -1,7 +1,7 @@
 import type { API, PlatformConfig } from 'homebridge'
 
-import RoombaPlatform from './platform.js'
 import RoombaMatterPlatform from './matterPlatform.js'
+import RoombaPlatform from './platform.js'
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js'
 
 /**

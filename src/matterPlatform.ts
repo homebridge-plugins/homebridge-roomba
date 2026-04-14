@@ -21,6 +21,12 @@ export default class RoombaMatterPlatform implements DynamicPlatformPlugin {
   private readonly config: RoombaPlatformConfig
   private readonly matterAccessories: Map<string, any> = new Map()
   private readonly roombaAccessories: Map<string, RoombaMatterAccessory> = new Map()
+  /**
+   * Cached HAP accessories restored by Homebridge on startup. These are
+   * accumulated in `configureAccessory` and then unregistered during
+   * `discoverDevices` because the Matter platform does not use HAP accessories.
+   */
+  private readonly cachedHapAccessories: PlatformAccessory[] = []
   version!: string
 
   public constructor(log: Logging, config: RoombaPlatformConfig, api: API) {
@@ -62,12 +68,14 @@ export default class RoombaMatterPlatform implements DynamicPlatformPlugin {
   }
 
   /**
-   * Required by DynamicPlatformPlugin. Called for cached HAP accessories.
-   * Not used in the Matter platform — Matter accessories are handled by
-   * `configureMatterAccessory`.
+   * Required by DynamicPlatformPlugin. Called for each cached HAP accessory
+   * restored from disk at startup. The Matter platform does not use HAP
+   * accessories, so we track them here and unregister them during
+   * `discoverDevices` to avoid leaving stale HAP accessories registered.
    */
-  public configureAccessory(_accessory: PlatformAccessory): void {
-    // HAP accessories are not used in the Matter platform
+  public configureAccessory(accessory: PlatformAccessory): void {
+    this.log.debug('Caching restored HAP accessory for removal:', accessory.displayName)
+    this.cachedHapAccessories.push(accessory)
   }
 
   /**
@@ -101,6 +109,13 @@ export default class RoombaMatterPlatform implements DynamicPlatformPlugin {
     if (!matterApi) {
       this.log.warn('Matter API not available — skipping device registration.')
       return
+    }
+
+    // Unregister any cached HAP accessories — the Matter platform does not use them.
+    if (this.cachedHapAccessories.length > 0) {
+      this.log.info('Unregistering %d cached HAP accessory(ies) (switching to Matter)', this.cachedHapAccessories.length)
+      this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, this.cachedHapAccessories)
+      this.cachedHapAccessories.length = 0
     }
 
     const devices: (Robot & DeviceConfig)[] = (await this.discoveryMethod()) as any

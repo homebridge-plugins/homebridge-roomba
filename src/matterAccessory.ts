@@ -118,7 +118,6 @@ export class RoombaMatterAccessory {
         ? config.idleWatchInterval * 60_000
         : 900_000
 
-    const serialNum = this._getSerialNum(device)
     this.UUID = (api as any).matter?.uuid?.generate(`roomba-${device.blid}`) ?? `roomba-${device.blid}`
     this.displayName = device.name
 
@@ -604,23 +603,27 @@ export class RoombaMatterAccessory {
       }
 
       return new Promise<void>((resolve) => {
-        let received = false
+        let finished = false
+
+        const finish = (success: boolean) => {
+          if (finished) {
+            return
+          }
+          finished = true
+          clearTimeout(timeout)
+          roomba.off('state', onState)
+          resolve()
+          callback(success)
+        }
 
         const timeout = setTimeout(() => {
-          if (!received) {
-            resolve()
-            callback(false)
-          }
+          finish(false)
         }, STATUS_TIMEOUT_MILLIS)
 
         const onState = (state: any) => {
           const parsed = this._parseState(state)
           if (parsed.batteryLevel !== undefined && parsed.charging !== undefined && parsed.running !== undefined) {
-            received = true
-            clearTimeout(timeout)
-            roomba.off('state', onState)
-            resolve()
-            callback(true)
+            finish(true)
           }
         }
         roomba.on('state', onState)
