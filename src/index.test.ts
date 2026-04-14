@@ -3,8 +3,6 @@ import type { API } from 'homebridge'
 import { describe, expect, it, vi } from 'vitest'
 
 import registerPlatform, { createPlatformProxy } from './index.js'
-import RoombaPlatform from './platform.js'
-import RoombaMatterPlatform from './matterPlatform.js'
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js'
 
 describe('index.ts', () => {
