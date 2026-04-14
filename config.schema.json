@@ -246,6 +246,18 @@
                 "type": "boolean",
                 "title": "Debug logging",
                 "required": false
+            },
+            "enableMatter": {
+                "type": "boolean",
+                "title": "Enable Matter Support",
+                "description": "Enable Homebridge Matter support when running on Homebridge v2 with Matter enabled. Disabling this forces the plugin to use HAP (HomeKit Accessory Protocol). Defaults to enabled.",
+                "required": false
+            },
+            "preferMatter": {
+                "type": "boolean",
+                "title": "Prefer Matter over HAP",
+                "description": "When Matter is available, prefer it over HAP. Disable this to force HAP even when Matter is available. Defaults to enabled.",
+                "required": false
             }
         }
     },
@@ -324,7 +336,9 @@
             "items": [
                 "idleWatchInterval",
                 "disableDiscovery",
-                "debug"
+                "debug",
+                "enableMatter",
+                "preferMatter"
             ]
         }
     ]

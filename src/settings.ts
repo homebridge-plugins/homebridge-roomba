@@ -17,6 +17,16 @@ export interface RoombaPlatformConfig extends PlatformConfig {
     disableDiscovery?: boolean
     idleWatchInterval?: number
     debug?: boolean
+    /**
+     * Enable Matter support when running on Homebridge v2 with Matter enabled.
+     * Defaults to true.
+     */
+    enableMatter?: boolean
+    /**
+     * Prefer Matter over HAP when both are available.
+     * Defaults to true.
+     */
+    preferMatter?: boolean
 }
 
 export interface DeviceConfig extends Robot {
