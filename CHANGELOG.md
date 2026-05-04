@@ -1,3 +1,19 @@
+# [3.0.0](https://github.com/homebridge-plugins/homebridge-roomba/compare/v2.1.1...v3.0.0) (2026-05-04)
+
+
+### Bug Fixes
+
+* address review feedback - listener leak, unused vars, import order, configureAccessory no-op ([f917d06](https://github.com/homebridge-plugins/homebridge-roomba/commit/f917d0618ca7ebb48a1793b4c6958b42bd5e9175))
+* American English spelling and JSON indentation in config.schema.json ([6966b56](https://github.com/homebridge-plugins/homebridge-roomba/commit/6966b563d5d467bb8bd873bf2ec3b7388f2d084c))
+
+
+### Features
+
+* add externalAccessory option for HAP and Matter platforms ([bfcbd56](https://github.com/homebridge-plugins/homebridge-roomba/commit/bfcbd5622a39d4028f0502642746e7a3b5212e61))
+* add Homebridge Matter support for Homebridge v2.0 ([1af0013](https://github.com/homebridge-plugins/homebridge-roomba/commit/1af001366b3b73d2fbc15a00f45ddbd107a584ae))
+
+
+
 # Changelog
 
 ## [3.0.0](https://github.com/homebridge-plugins/homebridge-roomba/compare/tag/v3.0.0) (2026-05-04)
