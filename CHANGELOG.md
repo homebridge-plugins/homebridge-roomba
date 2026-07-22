@@ -1,3 +1,15 @@
+## v3.0.2 (Pending Release)
+
+### Changed
+
+- chore(github): release on a published github release, not every push to latest
+- chore(github): align workflows, funding and issue templates with the other org plugins
+- chore: standardise the eslint setup and apply the org lint rules
+- chore: align the npm publishing files with the other org plugins
+- chore: standardise the package manifest with the other org plugins
+- docs: add claude and copilot instructions files
+- docs: use the standard org readme banner
+
 # [3.0.0](https://github.com/homebridge-plugins/homebridge-roomba/compare/v2.1.1...v3.0.0) (2026-05-04)
 
 
