@@ -59,6 +59,23 @@ export async function getRoombas(email: string, password: string, log: Logger, c
 
             log.info('Configuring roomba:', robot.name)
 
+            // Local discovery uses a UDP broadcast, which routers do not forward
+            // between subnets, so it can never find a Roomba on a different subnet
+            // to Homebridge. When the user has pinned the Roomba's IP address in the
+            // plugin config, honour it and skip discovery entirely - otherwise these
+            // users lose the Roomba after a ~25s discovery timeout every restart (#167).
+            const configuredIP = config.devices?.find(device => device.blid === robot.blid)?.ipaddress
+            if (configuredIP) {
+                log.info('Using the IP address from the config for roomba:', robot.name, '->', configuredIP)
+                robot.ip = configuredIP
+                if (robot.sku) {
+                    robot.model = getModel(robot.sku)
+                    robot.multiRoom = getMultiRoom(robot.model)
+                }
+                goodRoombas.push(robot)
+                continue
+            }
+
             try {
                 const robotIP = await getIP(robot.blid)
                 robot.ip = robotIP.ip
