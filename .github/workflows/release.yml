@@ -1,45 +1,21 @@
 name: Release
 
+# This workflow handles latest, beta, and alpha releases:
+# - Latest: Triggered by GitHub releases (tag vX.Y.Z)
+# - Beta: Triggered by pushes to beta-X.Y.Z branches
+# - Alpha: Triggered by pushes to alpha-X.Y.Z branches
+
 on:
+  release:
+    types: [published]
   push:
     branches:
-      - 'beta-*'
-      - 'beta'
-      - 'latest'
-  workflow_dispatch:
-    inputs:
-      release_type:
-        description: Release channel
-        required: true
-        type: choice
-        options:
-          - latest
-          - beta
-          - alpha
-        default: latest
-      is_esm:
-        description: Package is ESM
-        required: true
-        type: boolean
-        default: true
-      version_override:
-        description: Exact version (for example 2.1.0). Leave empty for auto bump.
-        required: false
-        type: string
-      version_bump:
-        description: Auto bump type when version_override is empty
-        required: false
-        type: choice
-        options:
-          - patch
-          - minor
-          - major
-        default: patch
-      max_attempts:
-        description: Max retries for prerelease collision handling
-        required: false
-        type: number
-        default: 5
+      - beta-*.*.*
+      - alpha-*.*.*
+
+permissions:
+  id-token: write
+  contents: read
 
 # Cancel any in-progress workflow for the same branch. A new push should
 # supersede the previous run rather than racing it to publish.
@@ -48,122 +24,59 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ─── QUALITY GATE (all branches) ────────────────────────────────────────────
-  # Build and test run for EVERY push, regardless of branch. Both the beta
-  # and stable release paths depend on these passing before anything is
-  # published or version-bumped.
+  publish:
+    if: ${{ github.repository == 'homebridge-plugins/homebridge-roomba' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
 
-  # 1️⃣ Build and test
-  build_and_test:
-    uses: homebridge/.github/.github/workflows/nodejs-build-and-test.yml@latest
-    with:
-      enable_coverage: false
-    secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: 'https://registry.npmjs.org'
 
-  # 2️⃣ Lint
-  lint:
-    needs: build_and_test
-    uses: homebridge/.github/.github/workflows/eslint.yml@latest
+      - name: Upgrade npm for OIDC support
+        run: npm install -g npm@latest
 
+      - name: Install dependencies
+        run: npm i
 
-  # ─── BETA RELEASE (branches starting with "beta") ────────────────────────────
+      - name: Run lint
+        run: npm run lint
 
-  # 3️⃣ Publish beta to NPM (OIDC — id-token required here and in the reusable workflow)
-  beta-publish:
-    if: startsWith(github.ref_name, 'beta')
-    needs: lint
-    permissions:
-      id-token: write
-    uses: homebridge/.github/.github/workflows/npm-publish-esm-oidc.yml@latest
-    with:
-      tag: 'beta'
-      dynamically_adjust_version: true
-      npm_version_command: 'pre'
-      pre_id: 'beta'
+      - name: Determine release type
+        id: release-type
+        run: |
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            echo "type=latest" >> $GITHUB_OUTPUT
+            echo "tag=latest" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == refs/heads/beta-* ]]; then
+            echo "type=beta" >> $GITHUB_OUTPUT
+            echo "tag=beta" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == refs/heads/alpha-* ]]; then
+            echo "type=alpha" >> $GITHUB_OUTPUT
+            echo "tag=alpha" >> $GITHUB_OUTPUT
+          else
+            echo "type=none" >> $GITHUB_OUTPUT
+            echo "tag=none" >> $GITHUB_OUTPUT
+            echo "No valid release type detected - skipping publish"
+          fi
 
-  # 4️⃣ Create GitHub pre-release
-  beta-pre-release:
-    if: startsWith(github.ref_name, 'beta')
-    needs: beta-publish
-    uses: homebridge/.github/.github/workflows/pre-release.yml@latest
-    with:
-      npm_version: ${{ needs.beta-publish.outputs.NPM_VERSION }}
-      body: |
-        **Beta Release**
-        **Version**: v${{ needs.beta-publish.outputs.NPM_VERSION }}
-        [How To Test Beta Releases](https://github.com/homebridge-plugins/homebridge-roomba/wiki/Beta-Version)
+      - name: Handle prerelease versioning
+        if: steps.release-type.outputs.type == 'beta' || steps.release-type.outputs.type == 'alpha'
+        run: |
+          # Download versioning script from homebridge/.github
+          mkdir -p .github
+          wget -q https://raw.githubusercontent.com/homebridge/.github/latest/.github/npm-version-script-esm.js -O .github/npm-version-script-esm.js
 
+          # Run the script to set base version
+          node .github/npm-version-script-esm.js ${{ github.ref }} ${{ steps.release-type.outputs.type }}
 
-  # ─── STABLE RELEASE (branch: "latest") ───────────────────────────────────────
+          # Add prerelease suffix
+          npm version pre --preid=${{ steps.release-type.outputs.type }} --no-git-tag-version
 
-  # 3️⃣ Determine release type, ESM status, and branch name
-  determine-release-type:
-    if: github.ref_name == 'latest'
-    needs: lint
-    uses: homebridge/.github/.github/workflows/determine-release-type.yml@latest
-    with:
-      ref_name: ${{ github.ref_name }}
-
-  # 4️⃣ Update version and changelog using the scripts
-  update-version:
-    if: github.ref_name == 'latest'
-    needs: determine-release-type
-    uses: homebridge/.github/.github/workflows/update-version.yml@latest
-    with:
-      release_type: ${{ needs.determine-release-type.outputs.release_type || inputs.release_type }}
-      is_esm: ${{ needs.determine-release-type.outputs.is_esm == 'true' || inputs.is_esm == 'true' }}
-      version_override: ${{ inputs.version_override }}
-      version_bump: ${{ inputs.version_bump }}
-
-  # 5️⃣ Publish to NPM and create GitHub release (OIDC — id-token required here and in the reusable workflow)
-  publish-release:
-    if: github.ref_name == 'latest'
-    needs: [determine-release-type, update-version]
-    permissions:
-      id-token: write
-      contents: write
-    uses: homebridge/.github/.github/workflows/publish-release.yml@latest
-    with:
-      release_type: ${{ needs.determine-release-type.outputs.release_type }}
-      version: ${{ needs.update-version.outputs.version }}
-      is_esm: ${{ needs.determine-release-type.outputs.is_esm == 'true' }}
-      version_override: ${{ inputs.version_override || '' }}
-      version_bump: ${{ inputs.version_bump || 'patch' }}
-      max_attempts: ${{ inputs.max_attempts || 5 }}
-    secrets:
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-  # 6️⃣ Promote branch if this is a prerelease (alpha/beta)
-  promote-branch:
-    if: ${{ github.ref_name == 'latest' && needs.determine-release-type.outputs.release_type != 'latest' && needs.determine-release-type.outputs.release_type != 'skip' }}
-    needs: [determine-release-type, publish-release]
-    uses: homebridge/.github/.github/workflows/promote-branch.yml@latest
-    with:
-      branch_name: ${{ needs.determine-release-type.outputs.branch_name }}
-      release_type: ${{ needs.determine-release-type.outputs.release_type }}
-      is_esm: ${{ needs.determine-release-type.outputs.is_esm == 'true' || inputs.is_esm == 'true' }}
-
-  # 7️⃣ Notify if any job fails
-  workflow-failure:
-    if: failure()
-    needs: [build_and_test, lint, determine-release-type, update-version, publish-release, promote-branch]
-    uses: homebridge/.github/.github/workflows/report-failure.yml@latest
-    with:
-      workflow_name: ${{ github.workflow }}
-      job_name: ${{ github.job }}
-      run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
-  # 8️⃣ Post to Discord (Beta + Stable)
-  discord:
-    name: Release Notifications
-    if: ${{ always() && ((startsWith(github.ref_name, 'beta') && needs.beta-publish.result == 'success') || (github.ref_name == 'latest' && needs.publish-release.result == 'success')) }}
-    needs: [beta-publish, update-version, publish-release]
-    uses: homebridge/.github/.github/workflows/discord-webhooks.yml@latest
-    with:
-      title: ${{ startsWith(github.ref_name, 'beta') && 'Homebridge Roomba Beta Release' || 'Homebridge Roomba Release' }}
-      description: |
-        Version `v${{ startsWith(github.ref_name, 'beta') && needs.beta-publish.outputs.NPM_VERSION || needs.update-version.outputs.version }}`
-      url: "https://github.com/homebridge-plugins/homebridge-roomba/releases/tag/v${{ startsWith(github.ref_name, 'beta') && needs.beta-publish.outputs.NPM_VERSION || needs.update-version.outputs.version }}"
-    secrets:
-      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL_LATEST }}
+      - name: Publish to npm with OIDC
+        if: steps.release-type.outputs.type != 'none'
+        run: npm publish --tag ${{ steps.release-type.outputs.tag }} --provenance --access public
