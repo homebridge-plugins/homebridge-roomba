@@ -1,7 +1,7 @@
 import type { API, Logging } from 'homebridge'
 
-import type { DeviceConfig, RoombaPlatformConfig } from './settings.js'
 import type { Robot } from './roomba.js'
+import type { DeviceConfig, RoombaPlatformConfig } from './settings.js'
 
 import dorita980 from 'dorita980'
 
@@ -86,7 +86,7 @@ export class RoboticVacuumCleaner {
   private _cachedStatus: RoombaStatus = { timestamp: 0 }
   private _lastRefreshState = 0
   private _roombaLastActiveTimestamp?: number
-  private _pollTimeout?: NodeJS.Timeout
+  private _pollTimeout?: ReturnType<typeof setTimeout>
   private _currentRoombaPromise?: Promise<RoombaHolder>
   private _currentCipherIndex = 0
   private _started = false
@@ -101,7 +101,7 @@ export class RoboticVacuumCleaner {
    */
   public readonly displayName: string
 
-  constructor(api: API, log: Logging, device: Robot & DeviceConfig, config: RoombaPlatformConfig, version: string) {
+  constructor(api: API, log: Logging, device: Robot & DeviceConfig, config: RoombaPlatformConfig) {
     this._api = api
     this._log = log
     this._device = device
@@ -610,7 +610,9 @@ export class RoboticVacuumCleaner {
             return
           }
           finished = true
+          // eslint-disable-next-line ts/no-use-before-define
           clearTimeout(timeout)
+          // eslint-disable-next-line ts/no-use-before-define
           roomba.off('state', onState)
           resolve()
           callback(success)

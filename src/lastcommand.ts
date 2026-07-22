@@ -1,5 +1,5 @@
-import type { Logging } from 'homebridge'
 import type { RobotState as DoritaRobotState } from 'dorita980'
+import type { Logging } from 'homebridge'
 
 import process from 'node:process'
 

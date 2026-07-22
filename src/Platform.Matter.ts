@@ -1,7 +1,7 @@
 import type { API, DynamicPlatformPlugin, Logging, PlatformAccessory } from 'homebridge'
 
-import type { DeviceConfig, RoombaPlatformConfig } from './settings.js'
 import type { Robot } from './roomba.js'
+import type { DeviceConfig, RoombaPlatformConfig } from './settings.js'
 
 import { readFileSync } from 'node:fs'
 
@@ -44,7 +44,7 @@ export default class RoombaMatterPlatform implements DynamicPlatformPlugin {
     }
 
     if (debug) {
-      this.log = Object.assign(log, { debug: (message: string, ...parameters: unknown[]) => { log.info(`DEBUG: ${message}`, ...parameters) } })
+      this.log = Object.assign(log, { debug: (message: string, ...parameters: unknown[]) => log.info(`DEBUG: ${message}`, ...parameters) })
     }
 
     this.version = this.getVersion()
@@ -118,7 +118,7 @@ export default class RoombaMatterPlatform implements DynamicPlatformPlugin {
     let registrationSucceeded = true
 
     for (const device of devices) {
-      const roombaAcc = new RoboticVacuumCleaner(this.api, this.log, device, this.config, this.version)
+      const roombaAcc = new RoboticVacuumCleaner(this.api, this.log, device, this.config)
       const uuid = roombaAcc.UUID
       configuredUUIDs.add(uuid)
 

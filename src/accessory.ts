@@ -121,7 +121,7 @@ export default class RoombaAccessory implements AccessoryPlugin {
   /**
    * Whether the plugin is actively polling Roomba's state and updating HomeKit
    */
-  private currentPollTimeout?: NodeJS.Timeout
+  private currentPollTimeout?: ReturnType<typeof setTimeout>
 
   /**
    * When we think a user / HomeKit was last interested in Roomba's state.
@@ -913,7 +913,7 @@ export default class RoombaAccessory implements AccessoryPlugin {
             clearTimeout(this.currentPollTimeout)
             this.currentPollTimeout = undefined
           }
-          this.currentPollTimeout = setTimeout(() => checkStatus(false), interval)
+          this.currentPollTimeout = setTimeout(checkStatus, interval, false)
         })
       }
     }

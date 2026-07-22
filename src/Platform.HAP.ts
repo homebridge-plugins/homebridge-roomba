@@ -95,7 +95,7 @@ export default class RoombaPlatform implements DynamicPlatformPlugin {
         accessory.context.deviceInfo = deviceInfo
         accessory.context.model = device.model
         accessory.context.firmwareRevision = device.softwareVer ?? this.version ?? '0.0.0'
-        new RoombaAccessory(this, accessory, this.log, {
+        void new RoombaAccessory(this, accessory, this.log, {
           ...device,
         }, this.config, this.api)
         this.api.publishExternalAccessories(PLUGIN_NAME, [accessory])
@@ -120,7 +120,7 @@ export default class RoombaPlatform implements DynamicPlatformPlugin {
           existingAccessory.context.model = device.model
           existingAccessory.context.firmwareRevision = device.softwareVer ?? this.version ?? '0.0.0'
           this.api.updatePlatformAccessories([existingAccessory])
-          new RoombaAccessory(this, existingAccessory, this.log, {
+          void new RoombaAccessory(this, existingAccessory, this.log, {
             ...device,
           }, this.config, this.api)
         } else {
@@ -133,7 +133,7 @@ export default class RoombaPlatform implements DynamicPlatformPlugin {
           accessory.context.deviceInfo = deviceInfo
           accessory.context.model = device.model
           accessory.context.firmwareRevision = device.softwareVer ?? this.version ?? '0.0.0'
-          new RoombaAccessory(this, accessory, this.log, {
+          void new RoombaAccessory(this, accessory, this.log, {
             ...device,
           }, this.config, this.api)
           this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory])

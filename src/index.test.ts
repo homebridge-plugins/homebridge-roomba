@@ -29,7 +29,7 @@ describe('index.ts', () => {
         isMatterEnabled: vi.fn().mockReturnValue(false),
       }
 
-      new Proxy(log, config, api)
+      void new Proxy(log, config, api)
 
       expect(HAPPlatform).toHaveBeenCalledWith(log, config, api)
       expect(MatterPlatform).not.toHaveBeenCalled()
@@ -47,7 +47,7 @@ describe('index.ts', () => {
         isMatterEnabled: vi.fn().mockReturnValue(true),
       }
 
-      new Proxy(log, config, api)
+      void new Proxy(log, config, api)
 
       expect(MatterPlatform).toHaveBeenCalledWith(log, config, api)
       expect(HAPPlatform).not.toHaveBeenCalled()
@@ -65,7 +65,7 @@ describe('index.ts', () => {
         isMatterEnabled: vi.fn().mockReturnValue(true),
       }
 
-      new Proxy(log, config, api)
+      void new Proxy(log, config, api)
 
       expect(HAPPlatform).toHaveBeenCalledWith(log, config, api)
       expect(MatterPlatform).not.toHaveBeenCalled()
@@ -73,7 +73,7 @@ describe('index.ts', () => {
 
     it('should fall back to HAP when Matter platform initialization fails', () => {
       const HAPPlatform = vi.fn()
-      const MatterPlatform = vi.fn(function MatterPlatformConstructor() {
+      const MatterPlatform = vi.fn(() => {
         throw new Error('Matter initialization failed')
       })
       const Proxy = createPlatformProxy(HAPPlatform, MatterPlatform)
@@ -87,7 +87,7 @@ describe('index.ts', () => {
         isMatterEnabled: vi.fn().mockReturnValue(true),
       }
 
-      new Proxy(log, config, api)
+      void new Proxy(log, config, api)
 
       expect(MatterPlatform).toHaveBeenCalledWith(log, config, api)
       expect(HAPPlatform).toHaveBeenCalledWith(log, config, api)

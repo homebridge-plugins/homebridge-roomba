@@ -1,7 +1,6 @@
 /* eslint-disable style/indent */
-import type { IncomingMessage } from 'node:http'
-
 import type { Logger } from 'homebridge'
+import type { IncomingMessage } from 'node:http'
 
 import type { RoombaPlatformConfig } from './settings.js'
 
@@ -30,7 +29,7 @@ export async function getRoombas(email: string, password: string, log: Logger, c
 
     // Extract the key from the JSON object and set it as the blid if not provided or if blid is 0
     for (const key in robots) {
-        if (Object.prototype.hasOwnProperty.call(robots, key)) {
+        if (Object.hasOwn(robots, key)) {
             const robot = robots[key]
             if (!robot.blid || robot.blid === '0') {
                 robot.blid = key
@@ -190,7 +189,7 @@ async function getIP(blid: string, maxAttempts: number = 5): Promise<any> {
                         return
                     }
                     // Wait 5 s for a matching response before closing and retrying
-                    setTimeout(() => cleanup(), 5000)
+                    setTimeout(cleanup, 5000)
                 })
             })
         })
