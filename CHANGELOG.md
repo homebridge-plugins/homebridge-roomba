@@ -10,6 +10,7 @@
 - docs: add claude and copilot instructions files
 - docs: use the standard org readme banner
 - chore(deps): dependency updates
+- fix: read the manual device list from the correct config field so disabling discovery works (#167)
 
 # [3.0.0](https://github.com/homebridge-plugins/homebridge-roomba/compare/v2.1.1...v3.0.0) (2026-05-04)
 

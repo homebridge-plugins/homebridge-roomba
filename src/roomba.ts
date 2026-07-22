@@ -13,7 +13,7 @@ export async function getRoombas(email: string, password: string, log: Logger, c
 
     if (config.disableDiscovery) {
         log.info('Using manual discovery as per config')
-        robots = config.roombas || []
+        robots = config.devices || []
     } else {
         log.info('Logging into iRobot...')
 
