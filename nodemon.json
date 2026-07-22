@@ -1,11 +1,10 @@
 {
   "watch": [
-    "src",
-    "config.schema.json"
+    "src"
   ],
-  "ext": "ts, html, json",
+  "ext": "ts",
   "ignore": [],
-  "exec": "DEBUG= tsc && homebridge -T -D -P -I -U ~/.homebridge-dev ..",
+  "exec": "tsc && npm run plugin-ui && homebridge run -U ./test/hbConfig -D",
   "signal": "SIGTERM",
   "env": {
     "NODE_OPTIONS": "--trace-warnings"
