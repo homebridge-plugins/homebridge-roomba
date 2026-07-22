@@ -18,6 +18,7 @@
   },
   "keywords": [
     "homebridge-plugin",
+    "supports-matter",
     "iRobot",
     "Roomba"
   ],
