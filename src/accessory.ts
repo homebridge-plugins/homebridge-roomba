@@ -785,7 +785,9 @@ export default class RoombaAccessory implements AccessoryPlugin {
         case 'charge':
         case 'recharge':
           status.running = false
-          status.charging = true
+          // The Roomba keeps reporting the 'charge' phase while docked even once
+          // fully charged, so treat a full battery as done charging (#223)
+          status.charging = status.batteryLevel === undefined || status.batteryLevel < 100
           status.docking = false
 
           break
