@@ -14,6 +14,7 @@
 - fix: report a docked roomba as fully charged rather than always charging at 100% (#223)
 - fix: use the configured static IP address when set, so a roomba on a different subnet can connect (#167)
 - fix(ui): register the cached-accessories handler with the leading slash the UI calls, so it works on older Homebridge UI versions
+- fix: stop reporting a roomba as paused after it finishes a job and docks, and surface a stuck roomba as an error so the two can be told apart (#226)
 
 # [3.0.0](https://github.com/homebridge-plugins/homebridge-roomba/compare/v2.1.1...v3.0.0) (2026-05-04)
 

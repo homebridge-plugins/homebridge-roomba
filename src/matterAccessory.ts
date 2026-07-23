@@ -54,6 +54,7 @@ interface RoombaStatus {
   docking?: boolean
   charging?: boolean
   paused?: boolean
+  stuck?: boolean
   batteryLevel?: number
   binFull?: boolean
 }
@@ -500,7 +501,14 @@ export class RoboticVacuumCleaner {
           status.docking = false
           break
       }
-      status.paused = !status.running && state.cleanMissionStatus.cycle === 'clean'
+      // Only treat the Roomba as paused when it is genuinely stopped part-way
+      // through a clean. Previously any non-running state with a 'clean' cycle
+      // counted as paused, so a Roomba that had finished and returned to the dock
+      // was reported as "Paused" instead of docked/idle (#226).
+      status.paused = state.cleanMissionStatus.phase === 'stop' && state.cleanMissionStatus.cycle === 'clean'
+      // Surface a stuck Roomba as an error so it can be told apart from a job
+      // that finished successfully (#226).
+      status.stuck = state.cleanMissionStatus.phase === 'stuck'
     }
 
     return status
@@ -538,6 +546,9 @@ export class RoboticVacuumCleaner {
     if (status.running) {
       operationalState = RVC_STATE.RUNNING
       runMode = RVC_RUN_MODE.CLEANING
+    } else if (status.stuck) {
+      operationalState = RVC_STATE.ERROR
+      runMode = RVC_RUN_MODE.IDLE
     } else if (status.docking) {
       operationalState = RVC_STATE.SEEKING_CHARGER
       runMode = RVC_RUN_MODE.IDLE

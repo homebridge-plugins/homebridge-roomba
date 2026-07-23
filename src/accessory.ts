@@ -816,7 +816,9 @@ export default class RoombaAccessory implements AccessoryPlugin {
 
           break
       }
-      status.paused = !status.running && state.cleanMissionStatus.cycle === 'clean'
+      // Only paused when genuinely stopped part-way through a clean, so a Roomba
+      // that finished and returned to the dock is not reported as paused (#226).
+      status.paused = state.cleanMissionStatus.phase === 'stop' && state.cleanMissionStatus.cycle === 'clean'
     }
 
     return status
