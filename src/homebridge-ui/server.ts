@@ -13,7 +13,7 @@ class PluginUiServer extends HomebridgePluginUiServer {
       A native method getCachedAccessories() was introduced in config-ui-x v4.37.0
       The following is for users who have a lower version of config-ui-x
     */
-    this.onRequest('getCachedAccessories', () => {
+    this.onRequest('/getCachedAccessories', () => {
       try {
         const plugin = 'homebridge-roomba'
         const devicesToReturn = []
