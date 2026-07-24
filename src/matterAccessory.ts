@@ -510,12 +510,15 @@ export class RoboticVacuumCleaner {
       // that finished successfully (#226).
       status.stuck = state.cleanMissionStatus.phase === 'stuck'
 
-      // Log the raw phase/cycle alongside the flags they map to. A Roomba that
-      // is physically still cleaning but briefly shows "ready" in HomeKit is
-      // reporting a phase we treat as not-running; this line reveals which one
-      // so the mapping can be corrected (#226).
+      // Log the full mission status alongside the flags it maps to. A Roomba
+      // that is physically still cleaning but shows "ready" or "charging" in
+      // HomeKit needs the extra fields (rechrgM = minutes until a mid-mission
+      // recharge finishes, notReady, batPct) to tell a genuinely finished job
+      // apart from a recharge-and-resume, and to check the battery reading
+      // against what the iRobot app shows (#226).
       this._log.debug(
-        `[Matter/${this.displayName}] phase=${state.cleanMissionStatus.phase} cycle=${state.cleanMissionStatus.cycle} `
+        `[Matter/${this.displayName}] cleanMissionStatus=${JSON.stringify(state.cleanMissionStatus)} `
+        + `batPct=${state.batPct} `
         + `-> running=${!!status.running} paused=${!!status.paused} docking=${!!status.docking} `
         + `charging=${!!status.charging} stuck=${!!status.stuck}`,
       )
