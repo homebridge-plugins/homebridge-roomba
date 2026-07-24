@@ -509,6 +509,16 @@ export class RoboticVacuumCleaner {
       // Surface a stuck Roomba as an error so it can be told apart from a job
       // that finished successfully (#226).
       status.stuck = state.cleanMissionStatus.phase === 'stuck'
+
+      // Log the raw phase/cycle alongside the flags they map to. A Roomba that
+      // is physically still cleaning but briefly shows "ready" in HomeKit is
+      // reporting a phase we treat as not-running; this line reveals which one
+      // so the mapping can be corrected (#226).
+      this._log.debug(
+        `[Matter/${this.displayName}] phase=${state.cleanMissionStatus.phase} cycle=${state.cleanMissionStatus.cycle} `
+        + `-> running=${!!status.running} paused=${!!status.paused} docking=${!!status.docking} `
+        + `charging=${!!status.charging} stuck=${!!status.stuck}`,
+      )
     }
 
     return status
