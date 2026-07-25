@@ -1,3 +1,24 @@
+<style>
+  .dark-mode {
+    background-color: #242424;
+    color: lightgrey;
+
+    .form-control {
+      background-color: #333333 !important;
+      border: none !important;
+      color: #eeeeee !important;
+    }
+
+    thead, tbody, tr {
+      border-style: hidden;
+    }
+
+    th {
+      color: #eeeeee !important;
+      font-weight: 500 !important;
+    }
+  }
+</style>
 <p class="text-center">
   <img src="https://raw.githubusercontent.com/homebridge/plugins/latest/icons/homebridge-roomba.png"
     alt="homebridge-roomba logo" style="width: 15%" />
@@ -10,7 +31,7 @@
 </div>
 <div id="menuWrapper" class="btn-group w-100 mb-0" role="group" aria-label="UI Menu" style="display: none">
   <button type="button" class="btn btn-primary" id="menuSettings">Settings</button>
-  <button type="button" class="btn btn-primary" id="menuDevices">Devices</button>
+  <button type="button" class="btn btn-primary" id="menuDevices">My Devices</button>
   <button type="button" class="btn btn-primary mr-0" id="menuHome">Support</button>
 </div>
 <div id="disabledBanner" class="alert alert-secondary mb-0 mt-3" role="alert" style="display: none">
@@ -50,60 +71,56 @@
 </div>
 <div id="pageSupport" class="mt-4" style="display: none">
   <p class="text-center lead">Thank you for using <strong>homebridge-roomba</strong></p>
-  <p class="text-center">The links below will take you to our GitHub wiki</p>
+  <h5>Plugin Information</h5>
+<ul>
+  <li>This plugin allows you to view and control your iRobot Roomba vacuums within HomeKit. The plugin:</li>
+  <ul>
+    <li>connects to each Roomba directly over your local network (no cloud account is required)</li>
+    <li>needs the robot's BLID and local password - run <code>npm run roomba:getpassword</code> to retrieve them</li>
+    <li>can optionally expose robots over Matter as well as HomeKit</li>
+  </ul>
+</ul>
+  <h5>Prerequisites</h5>
+<ul>
+  <li>To use this plugin, you will need to already have:</li>
+  <ul>
+    <li><a href="https://nodejs.org" target="_blank">Node</a>: latest version of <code>v22</code> or <code>v24</code> - any other major version is not supported.</li>
+    <li><a href="https://homebridge.io" target="_blank">Homebridge</a>: <code>v2</code> - refer to link for more information and installation instructions.</li>
+    <li>A Wi-Fi connected Roomba on the same network as Homebridge.</li>
+  </ul>
+</ul>
   <h5>Setup</h5>
-  <ul>
-    <li>
-      <a href="https://github.com/homebridge-plugins/homebridge-roomba/wiki" target="_blank">Wiki Home</a>
-    </li>
-    <li>
-      <a href="https://github.com/homebridge-plugins/homebridge-roomba/wiki/Configuration"
-        target="_blank">Configuration</a>
-    </li>
-    <li>
-      <a href="https://github.com/homebridge-plugins/homebridge-roomba/wiki/Beta-Version" target="_blank">Beta
-        Version</a>
-    </li>
-    <li>
-      <a href="https://github.com/homebridge-plugins/homebridge-roomba/wiki/Node-Version" target="_blank">Node
-        Version</a>
-    </li>
-    <li>
-      <a href="https://github.com/homebridge-plugins/homebridge-roomba/wiki/Uninstallation"
-        target="_blank">Uninstallation</a>
-    </li>
-  </ul>
+<ul>
+  <li><a href="https://github.com/homebridge-plugins/homebridge-roomba/wiki/Installation" target="_blank">Installation</a></li>
+  <li><a href="https://github.com/homebridge-plugins/homebridge-roomba/wiki/Configuration" target="_blank">Configuration</a></li>
+  <li><a href="https://github.com/homebridge-plugins/homebridge-roomba/wiki/Beta-Version" target="_blank">Beta Version</a></li>
+  <li><a href="https://github.com/homebridge-plugins/homebridge-roomba/wiki/Node-Version" target="_blank">Node Version</a></li>
+</ul>
   <h5>Features</h5>
-  <ul>
-    <li>
-      <a href="https://github.com/homebridge-plugins/homebridge-roomba/wiki/Supported-Devices" target="_blank">Supported
-        Devices</a>
-    </li>
-    <li>
-      <a href="https://github.com/homebridge-plugins/homebridge-roomba/wiki/Fan-Modes" target="_blank">Fan
-        Modes</a>
-    </li>
-  </ul>
+<ul>
+  <li>A switch to start and stop a clean</li>
+  <li>Battery level and charging state</li>
+  <li>A contact sensor that reports when the Roomba is docked</li>
+  <li>Filter maintenance status</li>
+</ul>
   <h5>Help/About</h5>
-  <ul>
-    <li>
-      <a href="https://github.com/homebridge-plugins/homebridge-roomba/issues/new/choose" target="_blank">Support
-        Request</a>
-    </li>
-    <li>
-      <a href="https://github.com/homebridge-plugins/homebridge-roomba/blob/latest/CHANGELOG.md"
-        target="_blank">Changelog</a>
-    </li>
-    <li>
-      <a href="https://github.com/sponsors/donavanbecker" target="_blank">About Me</a>
-    </li>
-  </ul>
+<ul>
+  <li><a href="https://github.com/homebridge-plugins/homebridge-roomba/wiki/Common-Errors" target="_blank">Common Errors</a></li>
+  <li><a href="https://github.com/homebridge-plugins/homebridge-roomba/issues/new/choose" target="_blank">Support Request</a></li>
+  <li><a href="https://github.com/homebridge-plugins/homebridge-roomba/blob/latest/CHANGELOG.md" target="_blank">Changelog</a></li>
+  <li><a href="https://github.com/sponsors/bwp91" target="_blank">About Me</a></li>
+</ul>
+  <h5>Credits</h5>
+<ul>
+  <li>To Rayan Khan: the original creator of this plugin.</li>
+  <li>To the <a href="https://www.npmjs.com/package/dorita980" target="_blank"><code>dorita980</code></a> library, which provides the local Roomba API.</li>
+  <li>To the creators/contributors of <a href="https://homebridge.io" target="_blank">Homebridge</a> who make this plugin possible.</li>
+</ul>
   <h5>Disclaimer</h5>
-  <ul>
-    <li>I am in no way affiliated with Cloudflared and this plugin is a personal project that I maintain in my free
-      time.</li>
-    <li>Use this plugin entirely at your own risk - please see licence for more information.</li>
-  </ul>
+<ul>
+  <li>I am in no way affiliated with iRobot and this plugin is a personal project that I maintain in my free time.</li>
+  <li>Use this plugin entirely at your own risk - please see licence for more information.</li>
+</ul>
 </div>
 <script>
   (async () => {
