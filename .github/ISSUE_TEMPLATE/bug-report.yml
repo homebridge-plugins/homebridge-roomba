@@ -48,7 +48,7 @@ body:
   - type: input
     id: devices
     attributes:
-      label: Which MEATER devices do you have that are causing issues?
+      label: Which Roomba devices do you have that are causing issues?
       description: Please include product models if applicable.
   - type: textarea
     id: logs
