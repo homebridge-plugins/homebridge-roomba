@@ -3,6 +3,7 @@
 ### Changed
 
 - style(ui): standardise the custom ui layout and sync the support tab with the readme
+- fix: configure manually-listed roombas when discovery is disabled, and map their password and ip address fields so they can connect (#163)
 
 ## v3.0.2 (2026-07-24)
 

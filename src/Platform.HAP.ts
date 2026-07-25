@@ -6,7 +6,7 @@ import type { DeviceConfig, RoombaPlatformConfig } from './settings.js'
 import { readFileSync } from 'node:fs'
 
 import RoombaAccessory from './accessory.js'
-import { getRoombas } from './roomba.js'
+import { getRoombas, normaliseManualRobot } from './roomba.js'
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js'
 
 export default class RoombaPlatform implements DynamicPlatformPlugin {
@@ -66,9 +66,7 @@ export default class RoombaPlatform implements DynamicPlatformPlugin {
         } as any
       })
     } else if (this.config.devices) {
-      return this.config.devices.map(device => ({
-        ...device,
-      }))
+      return this.config.devices.map(device => normaliseManualRobot({ ...device }) as DeviceConfig)
     } else {
       this.log.error('No configuration provided for devices.')
       return []

@@ -2,7 +2,7 @@
 import type { Logger } from 'homebridge'
 import type { IncomingMessage } from 'node:http'
 
-import type { RoombaPlatformConfig } from './settings.js'
+import type { DeviceConfig, RoombaPlatformConfig } from './settings.js'
 
 import { Buffer } from 'node:buffer'
 import * as dgram from 'node:dgram'
@@ -89,7 +89,13 @@ export async function getRoombas(email: string, password: string, log: Logger, c
                 badRoombas.push(robot)
             }
         } else {
-            log.info('Skipping configuration for roomba:', robot.name, 'due to config')
+            const manual = normaliseManualRobot(robot)
+            if (!manual.name || !manual.blid || !manual.password || !manual.ip) {
+                log.error('Skipping configuration for roomba:', manual.name, 'due to missing name, blid, password or ip address')
+                continue
+            }
+            log.info('Configuring roomba from the device list:', manual.name)
+            goodRoombas.push(manual)
         }
     }
 
@@ -98,6 +104,20 @@ export async function getRoombas(email: string, password: string, log: Logger, c
     }
 
     return goodRoombas
+}
+
+// Manual device entries use the schema field names (robotpwd / ipaddress)
+// while the rest of the plugin expects the discovered-robot shape
+// (password / ip), so map them across before use.
+export function normaliseManualRobot(device: Partial<DeviceConfig> & Partial<Robot>): Robot {
+    const robot = device as Robot & Partial<DeviceConfig>
+    robot.password = robot.password ?? robot.robotpwd ?? ''
+    robot.ip = robot.ip ?? robot.ipaddress ?? ''
+    if (!robot.model && robot.sku) {
+        robot.model = getModel(robot.sku)
+    }
+    robot.multiRoom = getMultiRoom(robot.model ?? '')
+    return robot
 }
 
 function getModel(sku: string): string {
