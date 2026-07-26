@@ -185,10 +185,7 @@
                     "functionBody": "return (model.devices && model.devices[arrayIndices].cleanBehaviour === 'rooms');"
                   }
                 }
-              },
-              "required": [
-                "user_pmapv_id"
-              ]
+              }
             },
             "stopBehaviour": {
               "type": "string",
@@ -252,9 +249,7 @@
       }
     },
     "required": [
-      "name",
-      "email",
-      "password"
+      "name"
     ]
   },
   "layout": [
