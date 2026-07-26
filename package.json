@@ -19,6 +19,7 @@
   "keywords": [
     "homebridge-plugin",
     "supports-matter",
+    "supports-hap",
     "iRobot",
     "Roomba"
   ],
