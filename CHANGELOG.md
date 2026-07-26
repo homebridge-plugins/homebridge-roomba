@@ -9,6 +9,8 @@
 - fix(schema): declare required fields the standard way so the homebridge ui stops reporting a config validation failure (#227)
 - fix(schema): stop requiring conditional and manual-mode-optional fields, so valid configs are not rejected (#227)
 - chore: declare the supports-hap transport keyword for the homebridge ui
+- docs(changelog): list every unreleased commit in the pending section
+- chore(deps): dependency updates
 
 ## v3.0.2 (2026-07-24)
 
