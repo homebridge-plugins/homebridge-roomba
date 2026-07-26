@@ -55,6 +55,11 @@ interface Status {
    * Paused during a clean cycle.
    */
   paused?: boolean
+  /**
+   * A clean cycle is still under way, even if the Roomba is not moving right
+   * now - emptying into its dock, or recharging part-way through to resume.
+   */
+  missionActive?: boolean
   batteryLevel?: number
   binFull?: boolean
   tankLevel?: number
@@ -819,6 +824,13 @@ export default class RoombaAccessory implements AccessoryPlugin {
       // Only paused when genuinely stopped part-way through a clean, so a Roomba
       // that finished and returned to the dock is not reported as paused (#226).
       status.paused = state.cleanMissionStatus.phase === 'stop' && state.cleanMissionStatus.cycle === 'clean'
+      // The cycle only drops to 'none' once the job is genuinely over, so this
+      // stays true while the Roomba is emptying into its dock or recharging
+      // part-way through a clean, both of which look idle from the phase alone.
+      // Polling has to stay quick through those, or a Roomba that resumes
+      // cleaning is not noticed until the next idle poll - up to 15 minutes of
+      // HomeKit insisting it is not cleaning while it is (#226).
+      status.missionActive = state.cleanMissionStatus.cycle !== 'none'
     }
 
     return status
@@ -944,7 +956,7 @@ export default class RoombaAccessory implements AccessoryPlugin {
   }
 
   private isActive(): boolean {
-    return this.cachedStatus.running || this.cachedStatus.docking || false
+    return this.cachedStatus.running || this.cachedStatus.docking || this.cachedStatus.missionActive || false
   }
 
   private runningStatus = (status: Status) => status.running === undefined

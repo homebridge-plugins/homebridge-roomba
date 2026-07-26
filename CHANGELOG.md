@@ -1,3 +1,9 @@
+## v3.0.4 (Pending Release)
+
+### Changed
+
+- fix: keep checking a roomba often while it empties into its dock or recharges part-way through a clean, so homekit stops showing it as not cleaning for up to 15 minutes (#226)
+
 ## v3.0.3 (2026-07-26)
 
 ### Changed

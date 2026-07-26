@@ -55,6 +55,11 @@ interface RoombaStatus {
   charging?: boolean
   paused?: boolean
   stuck?: boolean
+  /**
+   * A clean cycle is still under way, even if the Roomba is not moving right
+   * now - emptying into its dock, or recharging part-way through to resume.
+   */
+  missionActive?: boolean
   batteryLevel?: number
   binFull?: boolean
 }
@@ -509,6 +514,13 @@ export class RoboticVacuumCleaner {
       // Surface a stuck Roomba as an error so it can be told apart from a job
       // that finished successfully (#226).
       status.stuck = state.cleanMissionStatus.phase === 'stuck'
+      // The cycle only drops to 'none' once the job is genuinely over, so this
+      // stays true while the Roomba is emptying into its dock or recharging
+      // part-way through a clean, both of which look idle from the phase alone.
+      // Polling has to stay quick through those, or a Roomba that resumes
+      // cleaning is not noticed until the next idle poll - up to 15 minutes of
+      // HomeKit insisting it is not cleaning while it is (#226).
+      status.missionActive = state.cleanMissionStatus.cycle !== 'none'
 
       // Log the full mission status alongside the flags it maps to. A Roomba
       // that is physically still cleaning but shows "ready" or "charging" in
@@ -661,7 +673,7 @@ export class RoboticVacuumCleaner {
 
   private _pollInterval(): number {
     const timeSinceLastActive = Date.now() - (this._roombaLastActiveTimestamp ?? 0)
-    const isActive = this._cachedStatus.running || this._cachedStatus.docking
+    const isActive = this._cachedStatus.running || this._cachedStatus.docking || this._cachedStatus.missionActive
 
     if (isActive || timeSinceLastActive < AFTER_ACTIVE_MILLIS) {
       return 10_000
