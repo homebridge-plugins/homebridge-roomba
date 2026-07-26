@@ -2,9 +2,12 @@
 
 ### Changed
 
+- chore(github): use the shared homebridge action to deprecate past pre-releases
 - style(ui): standardise the custom ui layout and sync the support tab with the readme
+- docs(github): name this plugin's devices in the issue forms instead of meater
 - fix: configure manually-listed roombas when discovery is disabled, and map their password and ip address fields so they can connect (#163)
 - fix(schema): declare required fields the standard way so the homebridge ui stops reporting a config validation failure (#227)
+- fix(schema): stop requiring conditional and manual-mode-optional fields, so valid configs are not rejected (#227)
 - chore: declare the supports-hap transport keyword for the homebridge ui
 
 ## v3.0.2 (2026-07-24)
