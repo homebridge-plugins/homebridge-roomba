@@ -11,15 +11,13 @@
       "name": {
         "type": "string",
         "title": "Name",
-        "default": "Roomba",
-        "required": true
+        "default": "Roomba"
       },
       "email": {
         "type": "string",
         "title": "iRobot Account Email",
         "description": "The email address you use to log into the iRobot Home app.",
         "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
-        "required": true,
         "x-schema-form": {
           "type": "email"
         }
@@ -28,7 +26,6 @@
         "type": "string",
         "title": "iRobot Account Password",
         "description": "The password you use to log into the iRobot Home app.",
-        "required": true,
         "x-schema-form": {
           "type": "password"
         }
@@ -36,8 +33,7 @@
       "disableDiscovery": {
         "type": "boolean",
         "title": "Disable Discovery",
-        "description": "Disable automatic discovery of Roomba devices. If you have multiple Roomba devices, you can disable discovery and manually configure each device.",
-        "required": false
+        "description": "Disable automatic discovery of Roomba devices. If you have multiple Roomba devices, you can disable discovery and manually configure each device."
       },
       "devices": {
         "type": "array",
@@ -47,69 +43,56 @@
           "properties": {
             "name": {
               "type": "string",
-              "title": "Robot Vacuum Name",
-              "required": true
+              "title": "Robot Vacuum Name"
             },
             "model": {
               "type": "string",
-              "title": "Robot Vacuum Model",
-              "required": true
+              "title": "Robot Vacuum Model"
             },
             "serialnum": {
               "type": "string",
-              "title": "Robot Vacuum Serial Number",
-              "required": false
+              "title": "Robot Vacuum Serial Number"
             },
             "blid": {
               "type": "string",
-              "title": "Robot Vacuum BLID",
-              "required": true
+              "title": "Robot Vacuum BLID"
             },
             "robotpwd": {
               "type": "string",
-              "title": "Robot Vacuum Password",
-              "required": true
+              "title": "Robot Vacuum Password"
             },
             "ipaddress": {
               "type": "string",
-              "title": "Robot Vacuum IP Address",
-              "required": true
+              "title": "Robot Vacuum IP Address"
             },
             "dockContactSensor": {
               "type": "boolean",
               "title": "Enable Dock Contact Sensor",
-              "default": true,
-              "required": false
+              "default": true
             },
             "runningContactSensor": {
               "type": "boolean",
-              "title": "Enable Running Contact Sensor",
-              "required": false
+              "title": "Enable Running Contact Sensor"
             },
             "binContactSensor": {
               "type": "boolean",
-              "title": "Enable Bin Full Contact Sensor",
-              "required": false
+              "title": "Enable Bin Full Contact Sensor"
             },
             "dockingContactSensor": {
               "type": "boolean",
-              "title": "Returning Home Contact Sensor",
-              "required": false
+              "title": "Returning Home Contact Sensor"
             },
             "tankContactSensor": {
               "type": "boolean",
-              "title": "Braava Water Tank Contact Sensor",
-              "required": false
+              "title": "Braava Water Tank Contact Sensor"
             },
             "homeSwitch": {
               "type": "boolean",
-              "title": "Home Switch",
-              "required": false
+              "title": "Home Switch"
             },
             "cleanBehaviour": {
               "type": "string",
               "title": "When Roomba is turned on",
-              "required": true,
               "default": "everywhere",
               "oneOf": [
                 {
@@ -179,13 +162,11 @@
                         "properties": {
                           "noAutoPasses": {
                             "type": "boolean",
-                            "required": false,
                             "default": false,
                             "title": "Specify Number of Cleaning Passes"
                           },
                           "twoPass": {
                             "type": "boolean",
-                            "required": false,
                             "default": false,
                             "title": "Two Passes"
                           }
@@ -200,17 +181,18 @@
                 "user_pmapv_id": {
                   "type": "string",
                   "title": "User Pmapv Id",
-                  "required": true,
                   "condition": {
                     "functionBody": "return (model.devices && model.devices[arrayIndices].cleanBehaviour === 'rooms');"
                   }
                 }
-              }
+              },
+              "required": [
+                "user_pmapv_id"
+              ]
             },
             "stopBehaviour": {
               "type": "string",
               "title": "When Roomba is turned off",
-              "required": true,
               "default": "home",
               "oneOf": [
                 {
@@ -230,42 +212,50 @@
             "idleWatchInterval": {
               "type": "integer",
               "title": "Idle Poll Interval (minutes)",
-              "description": "How often to poll Roomba's status when it is idle. Defaults to 15 minutes.",
-              "required": false
+              "description": "How often to poll Roomba's status when it is idle. Defaults to 15 minutes."
             },
             "externalAccessory": {
               "type": "boolean",
               "title": "Publish as External Accessory",
-              "description": "Publish this Roomba as an external accessory (independent HomeKit bridge) rather than part of the main Homebridge bridge. Overrides the global setting for this device.",
-              "required": false
+              "description": "Publish this Roomba as an external accessory (independent HomeKit bridge) rather than part of the main Homebridge bridge. Overrides the global setting for this device."
             }
-          }
+          },
+          "required": [
+            "name",
+            "model",
+            "blid",
+            "robotpwd",
+            "ipaddress",
+            "cleanBehaviour",
+            "stopBehaviour"
+          ]
         }
       },
       "idleWatchInterval": {
         "type": "integer",
         "title": "Idle Poll Interval (minutes)",
-        "description": "How often to poll Roomba's status when it is idle. Defaults to 15 minutes.",
-        "required": false
+        "description": "How often to poll Roomba's status when it is idle. Defaults to 15 minutes."
       },
       "externalAccessory": {
         "type": "boolean",
         "title": "Publish as External Accessory",
-        "description": "Publish all Roomba devices as external accessories (independent HomeKit bridges) rather than part of the main Homebridge bridge. Can be overridden per device.",
-        "required": false
+        "description": "Publish all Roomba devices as external accessories (independent HomeKit bridges) rather than part of the main Homebridge bridge. Can be overridden per device."
       },
       "debug": {
         "type": "boolean",
-        "title": "Debug logging",
-        "required": false
+        "title": "Debug logging"
       },
       "enableMatter": {
         "type": "boolean",
         "title": "Enable Matter Support",
-        "description": "Enable Homebridge Matter support when running on Homebridge v2 with Matter enabled. If Matter is unavailable or fails to initialize, the plugin automatically falls back to HAP (HomeKit Accessory Protocol). Defaults to enabled.",
-        "required": false
+        "description": "Enable Homebridge Matter support when running on Homebridge v2 with Matter enabled. If Matter is unavailable or fails to initialize, the plugin automatically falls back to HAP (HomeKit Accessory Protocol). Defaults to enabled."
       }
-    }
+    },
+    "required": [
+      "name",
+      "email",
+      "password"
+    ]
   },
   "layout": [
     {
