@@ -17,8 +17,10 @@ Homebridge plugin to integrate iRobot Roomba vacuums into HomeKit
 ### Plugin Information
 
 - This plugin allows you to view and control your iRobot Roomba vacuums within HomeKit. The plugin:
-  - connects to each Roomba directly over your local network (no cloud account is required)
-  - needs the robot's BLID and local password - run `npm run roomba:getpassword` to retrieve them
+  - connects to each Roomba directly over your local network
+  - needs the robot's BLID and local password:
+    - run `npx get-roomba-password` (this works however you installed the plugin - `npm run roomba:getpassword` only works from a manual checkout, not a Homebridge UI install)
+    - newer robots, including the j series, no longer hand the password out over the network. If that command ends with `Error getting password`, use `npx get-roomba-password-cloud <iRobot email> <iRobot password>` instead, which fetches it from your iRobot account
   - can optionally expose robots over Matter as well as HomeKit
 
 ### Prerequisites
