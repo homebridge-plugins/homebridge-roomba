@@ -4,6 +4,7 @@
 
 - fix: keep checking a roomba often while it empties into its dock or recharges part-way through a clean, so homekit stops showing it as not cleaning for up to 15 minutes (#226)
 - docs: give password instructions that work on a homebridge ui install, and cover newer robots that no longer give the password out over the network (#167)
+- docs: lead with the account method for getting a roomba password, which reporters find simpler and works on every robot (#167)
 
 ## v3.0.3 (2026-07-26)
 
