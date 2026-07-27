@@ -2,7 +2,7 @@
   "name": "@homebridge-plugins/homebridge-roomba",
   "displayName": "Roomba",
   "type": "module",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "description": "homebridge-plugin for Roomba devices",
   "author": {
     "name": "RayanKhan"
