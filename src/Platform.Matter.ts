@@ -6,6 +6,7 @@ import type { DeviceConfig, RoombaPlatformConfig } from './settings.js'
 import { readFileSync } from 'node:fs'
 
 import { RoboticVacuumCleaner } from './matterAccessory.js'
+import { redactConfig } from './redact.js'
 import { getRoombas, normaliseManualRobot } from './roomba.js'
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js'
 
@@ -37,7 +38,7 @@ export default class RoombaMatterPlatform implements DynamicPlatformPlugin {
 
     try {
       this.verifyConfig()
-      log.debug('Configuration:', JSON.stringify(this.config, null, 2))
+      log.debug('Configuration:', JSON.stringify(redactConfig(this.config), null, 2))
     } catch (e: any) {
       log.error('Error in configuration:', e.message ?? e)
       return
