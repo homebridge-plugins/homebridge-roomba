@@ -6,6 +6,7 @@
 - docs: give password instructions that work on a homebridge ui install, and cover newer robots that no longer give the password out over the network (#167)
 - docs: lead with the account method for getting a roomba password, which reporters find simpler and works on every robot (#167)
 - fix: mask credentials in debug logs so shared logs cannot leak them
+- fix: keep checking a roomba often for a couple of minutes after a start or stop command, so homekit stops waiting up to 15 minutes to notice (#226)
 
 ## v3.0.3 (2026-07-26)
 

@@ -25,6 +25,17 @@ const STATUS_TIMEOUT_MILLIS = 60_000
  */
 const REFRESH_STATE_COALESCE_MILLIS = 10_000
 
+/**
+ * How long after we send a command should we keep polling frequently?
+ *
+ * A Roomba takes several seconds to actually start or stop, so the refresh we
+ * fire immediately after a command usually still reports the OLD state. Without
+ * this window the next poll interval is then chosen from that stale state — for
+ * a start command that means the idle interval, leaving HomeKit showing "not
+ * cleaning" until it elapses (#226).
+ */
+const AFTER_COMMAND_MILLIS = 120_000
+
 const ROBOT_CIPHERS = ['AES128-SHA256', 'TLS_AES_256_GCM_SHA384']
 
 /**
@@ -92,6 +103,7 @@ export class RoboticVacuumCleaner {
   private _cachedStatus: RoombaStatus = { timestamp: 0 }
   private _lastRefreshState = 0
   private _roombaLastActiveTimestamp?: number
+  private _lastCommandTimestamp?: number
   private _pollTimeout?: ReturnType<typeof setTimeout>
   private _currentRoombaPromise?: Promise<RoombaHolder>
   private _currentCipherIndex = 0
@@ -616,6 +628,14 @@ export class RoboticVacuumCleaner {
     }
 
     const now = Date.now()
+
+    // Every ad-hoc poll follows a command we just sent. Record that, so the
+    // interval stays short while the Roomba actually acts on it — the refresh
+    // below almost always still sees the pre-command state (#226).
+    if (adhoc) {
+      this._lastCommandTimestamp = now
+    }
+
     if (adhoc && now - this._lastRefreshState < REFRESH_STATE_COALESCE_MILLIS) {
       return
     }
@@ -672,10 +692,12 @@ export class RoboticVacuumCleaner {
   }
 
   private _pollInterval(): number {
-    const timeSinceLastActive = Date.now() - (this._roombaLastActiveTimestamp ?? 0)
+    const now = Date.now()
+    const timeSinceLastActive = now - (this._roombaLastActiveTimestamp ?? 0)
+    const timeSinceLastCommand = now - (this._lastCommandTimestamp ?? Number.NEGATIVE_INFINITY)
     const isActive = this._cachedStatus.running || this._cachedStatus.docking || this._cachedStatus.missionActive
 
-    if (isActive || timeSinceLastActive < AFTER_ACTIVE_MILLIS) {
+    if (isActive || timeSinceLastActive < AFTER_ACTIVE_MILLIS || timeSinceLastCommand < AFTER_COMMAND_MILLIS) {
       return 10_000
     }
     return this._idlePollIntervalMillis
