@@ -46,7 +46,8 @@
     "roomba:getpassword": "get-roomba-password",
     "roomba:getlastcommand": "node ./dist/lastcommand.js",
     "docs": "typedoc",
-    "docs:lint": "typedoc --emit none --treatWarningsAsErrors"
+    "docs:lint": "typedoc --emit none --treatWarningsAsErrors",
+    "changelog:sync": "node .github/scripts/sync-changelog.mjs"
   },
   "publishConfig": {
     "access": "public"
