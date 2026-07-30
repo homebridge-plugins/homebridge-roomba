@@ -39,6 +39,16 @@ const AFTER_COMMAND_MILLIS = 120_000
 const ROBOT_CIPHERS = ['AES128-SHA256', 'TLS_AES_256_GCM_SHA384']
 
 /**
+ * How often to republish Matter state even when nothing has changed (#228).
+ *
+ * A Matter controller expects to keep hearing from a device; if the only pushes
+ * are change-driven, a Roomba parked on its dock goes silent and Apple Home
+ * settles on "Updating..." forever. A minute is comfortably inside the interval
+ * a controller will tolerate, and the pushes are cheap and local.
+ */
+const MATTER_REPUBLISH_INTERVAL = 60_000
+
+/**
  * Matter RVC operational state IDs
  */
 const RVC_STATE = {
@@ -64,6 +74,12 @@ interface RoombaStatus {
   running?: boolean
   docking?: boolean
   charging?: boolean
+  /**
+   * Sitting on the dock. Distinct from `charging`, which goes false once the
+   * battery reaches 100% even though the Roomba is still docked (#223) - so
+   * without this a fully charged Roomba looked simply "stopped" (#228).
+   */
+  docked?: boolean
   paused?: boolean
   stuck?: boolean
   /**
@@ -105,6 +121,7 @@ export class RoboticVacuumCleaner {
   private _roombaLastActiveTimestamp?: number
   private _lastCommandTimestamp?: number
   private _pollTimeout?: ReturnType<typeof setTimeout>
+  private _republishTimer?: ReturnType<typeof setInterval>
   private _currentRoombaPromise?: Promise<RoombaHolder>
   private _currentCipherIndex = 0
   private _started = false
@@ -217,6 +234,18 @@ export class RoboticVacuumCleaner {
     }
     this._started = true
     this._schedulePoll(false)
+
+    // ⚠️ Republish on a timer as well as on change. State was only ever pushed
+    // when something changed, so a Roomba sitting idle on its dock published
+    // nothing at all and Apple Home eventually showed it as "Updating..."
+    // indefinitely, until some unrelated event forced a push (#228).
+    this._republishTimer = setInterval(() => {
+      if (this._cachedStatus) {
+        this._pushMatterState(this._cachedStatus)
+      }
+    }, MATTER_REPUBLISH_INTERVAL)
+    // Do not hold the process open just to repeat state we have already sent.
+    this._republishTimer.unref?.()
   }
 
   /**
@@ -227,6 +256,10 @@ export class RoboticVacuumCleaner {
     if (this._pollTimeout) {
       clearTimeout(this._pollTimeout)
       this._pollTimeout = undefined
+    }
+    if (this._republishTimer) {
+      clearInterval(this._republishTimer)
+      this._republishTimer = undefined
     }
   }
 
@@ -493,6 +526,7 @@ export class RoboticVacuumCleaner {
           status.running = true
           status.charging = false
           status.docking = false
+          status.docked = false
           break
         case 'charge':
         case 'recharge':
@@ -501,6 +535,8 @@ export class RoboticVacuumCleaner {
           // fully charged, so treat a full battery as done charging (#223)
           status.charging = status.batteryLevel === undefined || status.batteryLevel < 100
           status.docking = false
+          // Still on the dock either way, which is what Matter wants to know (#228)
+          status.docked = true
           break
         case 'hmUsrDock':
         case 'hmMidMsn':
@@ -508,6 +544,7 @@ export class RoboticVacuumCleaner {
           status.running = false
           status.charging = false
           status.docking = true
+          status.docked = false
           break
         case 'stop':
         case 'stuck':
@@ -516,6 +553,7 @@ export class RoboticVacuumCleaner {
           status.running = false
           status.charging = false
           status.docking = false
+          status.docked = false
           break
       }
       // Only treat the Roomba as paused when it is genuinely stopped part-way
@@ -594,6 +632,14 @@ export class RoboticVacuumCleaner {
       runMode = RVC_RUN_MODE.IDLE
     } else if (status.charging) {
       operationalState = RVC_STATE.CHARGING
+      runMode = RVC_RUN_MODE.IDLE
+    } else if (status.docked) {
+      // ⚠️ Must come after `charging` and before the fallback. `charging` goes
+      // false once the battery hits 100% (#223), so without this branch a
+      // Roomba sat fully charged on its dock reported as Stopped - it was the
+      // only state Home ever saw it in, and DOCKED was declared in
+      // operationalStateList but never actually assigned (#228).
+      operationalState = RVC_STATE.DOCKED
       runMode = RVC_RUN_MODE.IDLE
     } else {
       operationalState = RVC_STATE.STOPPED
