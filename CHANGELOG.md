@@ -9,6 +9,7 @@
 - chore: count a repeated commit subject once when syncing the changelog
 - chore(github): check the changelog against the commits in ci
 - fix(matter): report a docked roomba as docked, and keep republishing state so home stops showing updating (#228)
+- fix: say why a connection to the roomba failed, instead of reporting every cause as a bare timeout (#167)
 
 ## v3.0.4 (2026-07-28)
 

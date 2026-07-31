@@ -5,6 +5,8 @@ import type { DeviceConfig, RoombaPlatformConfig } from './settings.js'
 
 import dorita980 from 'dorita980'
 
+import { describeConnectTimeout } from './connectFailure.js'
+
 /**
  * How long to wait to connect to Roomba.
  */
@@ -439,20 +441,28 @@ export class RoboticVacuumCleaner {
     return new Promise<RoombaHolder>((resolve, reject) => {
       let connected = false
       let failed = false
+      /* See the matching comment in accessory.ts - a timeout needs to say WHY (#167). */
+      let lastError: Error | undefined
 
       const roomba = new dorita980.Local(this._blid, this._robotpwd, this._ipaddress, 2, {
         ciphers: ROBOT_CIPHERS[this._currentCipherIndex],
       })
 
+      const startConnecting = Date.now()
       const timeout = setTimeout(() => {
         failed = true
         roomba.end()
-        reject(new Error('Connect timed out'))
+        reject(new Error(describeConnectTimeout(this._ipaddress, Date.now() - startConnecting, lastError)))
       }, CONNECT_TIMEOUT_MILLIS)
 
       roomba.on('state', (state: any) => {
         const parsed = this._parseState(state)
         this._mergeCachedStatus(parsed)
+      })
+
+      /* Stays attached for the whole attempt, unlike onError below. */
+      roomba.on('error', (error: Error) => {
+        lastError = error
       })
 
       const onError = (error: Error) => {

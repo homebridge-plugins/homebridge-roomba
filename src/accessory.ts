@@ -7,6 +7,8 @@ import type { DeviceConfig, RoombaPlatformConfig } from './settings.js'
 
 import dorita980 from 'dorita980'
 
+import { describeConnectTimeout } from './connectFailure.js'
+
 /**
  * How long to wait to connect to Roomba.
  */
@@ -457,6 +459,13 @@ export default class RoombaAccessory implements AccessoryPlugin {
     return new Promise<RoombaHolder>((resolve, reject) => {
       let connected = false
       let failed = false
+      /*
+       * The last error seen during this attempt, so a timeout can say WHY it
+       * gave up (#167). `onError` below detaches itself after the first error,
+       * so anything after that - including every error on an attempt that went
+       * on to retry with a different cipher - was previously unobservable.
+       */
+      let lastError: Error | undefined
 
       const roomba = new dorita980.Local(this.blid, this.robotpwd, this.ipaddress, 2, {
         ciphers: ROBOT_CIPHERS[this.currentCipherIndex],
@@ -469,11 +478,16 @@ export default class RoombaAccessory implements AccessoryPlugin {
         this.log.debug('Timed out after %ims trying to connect to Roomba', Date.now() - startConnecting)
 
         roomba.end()
-        reject(new Error('Connect timed out'))
+        reject(new Error(describeConnectTimeout(this.ipaddress, Date.now() - startConnecting, lastError)))
       }, CONNECT_TIMEOUT_MILLIS)
 
       roomba.on('state', (state) => {
         this.receiveRobotState(state)
+      })
+
+      /* Stays attached for the whole attempt, unlike onError below. */
+      roomba.on('error', (error: Error) => {
+        lastError = error
       })
 
       const onError = (error: Error) => {
