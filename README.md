@@ -50,7 +50,6 @@ Homebridge plugin to integrate iRobot Roomba vacuums into HomeKit
 - [Common Errors](https://github.com/homebridge-plugins/homebridge-roomba/wiki/Common-Errors)
 - [Support Request](https://github.com/homebridge-plugins/homebridge-roomba/issues/new/choose)
 - [Changelog](https://github.com/homebridge-plugins/homebridge-roomba/blob/latest/CHANGELOG.md)
-- [About Me](https://github.com/sponsors/bwp91)
 
 ### Credits
 
