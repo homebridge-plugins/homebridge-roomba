@@ -36,6 +36,9 @@ declare module 'dorita980' {
     stop: () => Promise<{ ok: null }>
     resume: () => Promise<{ ok: null }>
     dock: () => Promise<{ ok: null }>
+    setCleaningPassesAuto: () => Promise<{ ok: null }>
+    setCleaningPassesOne: () => Promise<{ ok: null }>
+    setCleaningPassesTwo: () => Promise<{ ok: null }>
     [key: string]: any
   }
 

@@ -5,6 +5,7 @@ import type { DeviceConfig, RoombaPlatformConfig } from './settings.js'
 
 import dorita980 from 'dorita980'
 
+import { cleanModeFromState, RVC_CLEAN_MODE, RVC_CLEAN_MODES } from './cleanMode.js'
 import { describeConnectTimeout } from './connectFailure.js'
 
 /**
@@ -91,6 +92,10 @@ interface RoombaStatus {
   missionActive?: boolean
   batteryLevel?: number
   binFull?: boolean
+  /**
+   * RVC clean mode from the robot's pass preference (see cleanMode.ts).
+   */
+  cleanMode?: number
 }
 
 interface RoombaHolder {
@@ -196,10 +201,8 @@ export class RoboticVacuumCleaner {
           currentMode: RVC_RUN_MODE.IDLE,
         },
         rvcCleanMode: {
-          supportedModes: [
-            { label: 'Vacuum', mode: 0, modeTags: [{ value: 16385 }] },
-          ],
-          currentMode: 0,
+          supportedModes: RVC_CLEAN_MODES,
+          currentMode: RVC_CLEAN_MODE.VACUUM,
         },
         rvcOperationalState: {
           operationalStateList: [
@@ -217,6 +220,9 @@ export class RoboticVacuumCleaner {
       handlers: {
         rvcRunMode: {
           changeToMode: async (request: any) => this._handleChangeRunMode(request),
+        },
+        rvcCleanMode: {
+          changeToMode: async (request: any) => this._handleChangeCleanMode(request),
         },
         rvcOperationalState: {
           pause: async () => this._handlePause(),
@@ -284,6 +290,41 @@ export class RoboticVacuumCleaner {
     }
 
     return { status: 0 }
+  }
+
+  /**
+   * Set the robot's cleaning passes. Throws on failure, so Homebridge answers
+   * the controller with an error and leaves the current mode as it was.
+   */
+  private async _handleChangeCleanMode(request: any): Promise<void> {
+    const mode: number = request?.newMode ?? -1
+    this._log.debug(`[Matter/${this.displayName}] changeToMode (clean): ${mode}`)
+    if (mode !== RVC_CLEAN_MODE.VACUUM && mode !== RVC_CLEAN_MODE.DEEP_CLEAN) {
+      throw new Error(`unsupported clean mode ${mode}`)
+    }
+
+    await new Promise<void>((resolve, reject) => {
+      this._connect(async (error, roomba) => {
+        if (error || !roomba) {
+          this._log.warn(`[Matter/${this.displayName}] Failed to set clean mode: ${error?.message ?? 'Unknown'}`)
+          reject(error ?? new Error('no connection'))
+          return
+        }
+        try {
+          if (mode === RVC_CLEAN_MODE.DEEP_CLEAN) {
+            await roomba.setCleaningPassesTwo()
+          } else {
+            await roomba.setCleaningPassesAuto()
+          }
+          this._cachedStatus.cleanMode = mode
+          this._log.debug(`[Matter/${this.displayName}] Cleaning passes: ${mode === RVC_CLEAN_MODE.DEEP_CLEAN ? 'two' : 'auto'}`)
+          resolve()
+        } catch (err: any) {
+          this._log.warn(`[Matter/${this.displayName}] Setting clean mode failed: ${err.message}`)
+          reject(err)
+        }
+      })
+    })
   }
 
   private async _handlePause(): Promise<any> {
@@ -529,6 +570,10 @@ export class RoboticVacuumCleaner {
     if (state.bin !== undefined) {
       status.binFull = state.bin.full
     }
+    const cleanMode = cleanModeFromState(state)
+    if (cleanMode !== undefined) {
+      status.cleanMode = cleanMode
+    }
 
     if (state.cleanMissionStatus !== undefined) {
       switch (state.cleanMissionStatus.phase) {
@@ -661,6 +706,10 @@ export class RoboticVacuumCleaner {
         .catch((e: any) => this._log.debug(`[Matter/${this.displayName}] State push error: ${e?.message}`))
       matterApi.updateAccessoryState(this.UUID, 'rvcRunMode', { currentMode: runMode })
         .catch((e: any) => this._log.debug(`[Matter/${this.displayName}] State push error: ${e?.message}`))
+      if (status.cleanMode !== undefined) {
+        matterApi.updateAccessoryState(this.UUID, 'rvcCleanMode', { currentMode: status.cleanMode })
+          .catch((e: any) => this._log.debug(`[Matter/${this.displayName}] State push error: ${e?.message}`))
+      }
 
       if (status.batteryLevel !== undefined) {
         // Matter uses 0–200 for battery percentage (0.5% increments)

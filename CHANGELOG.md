@@ -11,6 +11,8 @@
 - fix(matter): report a docked roomba as docked, and keep republishing state so home stops showing updating (#228)
 - fix: say why a connection to the roomba failed, instead of reporting every cause as a bare timeout (#167)
 - chore: remove personal funding links
+- fix(matter): list a second clean mode, so the robot registers on Homebridge 2.5
+- fix(matter): tag the vacuum clean mode auto, so apple home can switch back from deep clean
 
 ## v3.0.4 (2026-07-28)
 
