@@ -9,6 +9,11 @@
  * A Roomba has one real choice here, its cleaning passes, so the second mode is
  * "Deep clean" = two passes over every area. "Vacuum" puts the robot back on its
  * automatic pass setting.
+ *
+ * Both modes need a tag besides Vacuum. Apple Home reads the Vacuum tag as the
+ * kind of clean and lists the other tags as options: with "Vacuum" tagged
+ * Vacuum alone it had no entry, so Deep clean could be ticked but never
+ * unticked (Home sent Deep clean again).
  */
 
 export const RVC_CLEAN_MODE = {
@@ -22,12 +27,13 @@ export type RvcCleanMode = typeof RVC_CLEAN_MODE[keyof typeof RVC_CLEAN_MODE]
  * Matter RvcCleanMode mode tags.
  */
 const MODE_TAG = {
+  AUTO: 0,
   DEEP_CLEAN: 16384,
   VACUUM: 16385,
 } as const
 
 export const RVC_CLEAN_MODES = [
-  { label: 'Vacuum', mode: RVC_CLEAN_MODE.VACUUM, modeTags: [{ value: MODE_TAG.VACUUM }] },
+  { label: 'Vacuum', mode: RVC_CLEAN_MODE.VACUUM, modeTags: [{ value: MODE_TAG.VACUUM }, { value: MODE_TAG.AUTO }] },
   { label: 'Deep clean', mode: RVC_CLEAN_MODE.DEEP_CLEAN, modeTags: [{ value: MODE_TAG.DEEP_CLEAN }, { value: MODE_TAG.VACUUM }] },
 ]
 

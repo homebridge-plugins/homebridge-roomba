@@ -19,6 +19,16 @@ describe('matter clean modes', () => {
     }
   })
 
+  /**
+   * Apple Home lists a mode as an option only by its tags other than Vacuum; a
+   * mode without one cannot be picked once another is selected.
+   */
+  it('gives every mode its own tag besides vacuum', () => {
+    const extra = RVC_CLEAN_MODES.map(m => m.modeTags.map(t => t.value).filter(v => v !== 16385).sort().join(','))
+    expect(extra.every(e => e !== '')).toBe(true)
+    expect(new Set(extra).size).toBe(extra.length)
+  })
+
   it('reads the mode from the robot\'s pass preference', () => {
     expect(cleanModeFromState({ twoPass: true })).toBe(RVC_CLEAN_MODE.DEEP_CLEAN)
     expect(cleanModeFromState({ twoPass: false })).toBe(RVC_CLEAN_MODE.VACUUM)
