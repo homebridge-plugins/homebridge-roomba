@@ -2,6 +2,7 @@
 
 ### Changed
 
+- fix(matter): omit the invalid single-mode `rvcCleanMode` cluster so Roombas can register on Homebridge 2.5
 - chore: keep test files out of the published package
 - chore(github): run the build and tests in ci, on node 22, 24 and 26
 - chore: use the same lint setup across every plugin

@@ -195,12 +195,10 @@ export class RoboticVacuumCleaner {
           ],
           currentMode: RVC_RUN_MODE.IDLE,
         },
-        rvcCleanMode: {
-          supportedModes: [
-            { label: 'Vacuum', mode: 0, modeTags: [{ value: 16385 }] },
-          ],
-          currentMode: 0,
-        },
+        // RvcCleanMode is intentionally omitted until the plugin can expose at
+        // least two valid clean modes. Matter requires SupportedModes to contain
+        // 2-255 entries; publishing the single Vacuum mode that this plugin used
+        // to provide makes Homebridge 2.5 reject the entire RVC endpoint.
         rvcOperationalState: {
           operationalStateList: [
             { operationalStateId: RVC_STATE.STOPPED },
